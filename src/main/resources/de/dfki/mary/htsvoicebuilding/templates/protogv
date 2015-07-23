@@ -1,0 +1,57 @@
+~o <VecSize> ${GLOBALVECSIZE} <USER> <DIAGC>
+<MSDInfo> ${NBSTREAM} ${STREAMMSDINFO}
+<StreamInfo> ${NBSTREAM} ${STREAMVECSIZE}
+<BeginHMM>
+  <NumStates> 3
+     <State> 2
+<%       
+    def stream_index = 1
+    project.user_configuration.models.cmp.streams.each { stream ->
+        
+%>	  <Stream> $stream_index
+<%
+            stream_index += 1
+            dim = (stream.order + 1)
+%>         <Mean> $dim
+<%
+         def values = ""
+         for (str in 1..dim) {
+            values +="1.0 "
+            
+            if (str%10 == 0) {
+%>		       $values
+<%
+               values = ""
+            }
+         }
+
+         if (dim%10 != 0) {
+%>		       $values
+<%
+            values = ""
+         }
+%>         <Variance> $dim
+<%
+         values = ""
+         for (str in 1..dim) {
+             values +="1.0 "
+             
+             if (str%10 == 0) {
+%>				$values
+<%
+                values = ""
+             }
+         }
+
+         if (dim%10 != 0) {
+%>				$values
+<%
+                 values = ""
+         }
+      }
+%>      
+  <TransP> 3
+     0.000e+0 1.000e+0 0.000e+0
+     0.000e+0 0.000e+0 1.000e+0
+     0.000e+0 0.000e+0 0.000e+0
+<EndHMM>

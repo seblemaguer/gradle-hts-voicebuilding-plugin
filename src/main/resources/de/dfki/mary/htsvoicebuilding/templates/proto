@@ -1,0 +1,140 @@
+~o <VecSize> ${GLOBALVECSIZE} <USER> <DIAGC>
+<MSDInfo> ${NBSTREAM} ${STREAMMSDINFO}
+<StreamInfo> ${NBSTREAM} ${STREAMVECSIZE}
+<BeginHMM>
+  <NumStates> ${NBSTATES}
+<%
+    for (i in 2..project.user_configuration.models.global.nb_emitting_states+1) {
+%>   <State> $i
+       <SWeights> $NBSTREAM $SWEIGHTS
+<%       
+    def state_template = ""
+    def stream_index = 1
+    project.user_configuration.models.cmp.streams.each { stream ->
+        
+        if (stream.is_msd) {
+            for (s in 1..stream.winfiles.size()) {
+%>			<Stream> $stream_index
+<%
+                stream_index += 1
+                def dim= stream.order + 1
+%>				<NumMixes> 2
+              	<Mixture> 1 0.5
+					<Mean> $dim
+<%
+                def values = ""
+                for (str in 1..dim) {
+                    values +="1.0 "
+                    if (str%10 == 0) {
+%>						$values
+<%
+                        values = ""
+                    }
+                }
+
+                if (dim%10 != 0) {
+%>						$values
+<%
+                        values = ""
+}
+%>					<Variance> $dim
+<%
+                values = ""
+                for (str in 1..dim) {
+                    values +="1.0 "
+                    if (str%10 == 0) {
+%>						$values
+<%
+                        values = ""
+                    }
+                }
+
+                if (dim%10 != 0) {
+%>						$values
+<%
+                        values = ""
+}
+%>
+              	<Mixture> 2 0.5
+              		<Mean> 0
+              		<Variance> 0
+<%
+          }
+      } else {
+%>			<Stream> $stream_index
+<%
+            stream_index += 1
+            dim = (stream.order + 1) * stream.winfiles.size()
+%>
+					<Mean> $dim
+<%
+                def values = ""
+                for (str in 1..dim) {
+                    values +="1.0 "
+                    if (str%10 == 0) {
+%>						$values
+<%
+                        values = ""
+                    }
+                }
+
+                if (dim%10 != 0) {
+%>						$values
+<%
+                        values = ""
+}
+%>					<Variance> $dim
+<%
+                values = ""
+                for (str in 1..dim) {
+                    values +="1.0 "
+                    if (str%10 == 0) {
+%>						$values
+<%
+                        values = ""
+                    }
+                }
+
+                if (dim%10 != 0) {
+%>						$values
+<%
+                        values = ""
+                }
+          }
+      }}
+%>
+  <TransP> ${NBSTATES}
+<%
+   def transP = ""
+   for (i in 1..NBSTATES) {
+        if (i == 2) {
+            transP += "1.000e+0 "
+        } else {
+            transP += "0.000e+0 "
+        }
+    }
+   %>         $transP
+<%
+   for (i in 2..(NBSTATES-1)) {
+        transP = ""
+        for (j in 1..NBSTATES) {
+            if (i == j) {
+                transP += "6.000e-1 "
+            } else if (i == (j - 1)) {
+                transP += "4.000e-1 "
+            } else {
+                transP += "0.000e+0 "
+   }
+    	}
+%>            $transP
+<%
+    }
+
+    //   1. Last state
+    transP = ""
+    for (i in 1..NBSTATES) {
+        transP += "0.000e+0 "
+    }
+    
+%>            $transP
+<EndHMM>

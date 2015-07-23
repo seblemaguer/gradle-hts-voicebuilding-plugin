@@ -1,0 +1,18 @@
+// load stats file
+RO ${GAM} "${STATSFILE}"
+
+TR 0
+
+// questions for decision tree-based context clustering
+${QUESTIONS}
+
+TR 3
+
+// Construct the decision trees
+
+${STREAMLINE}
+
+TR 1
+
+// output constructed trees
+ST "${OUTPUT}"

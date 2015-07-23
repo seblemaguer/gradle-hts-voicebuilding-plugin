@@ -1,0 +1,10 @@
+TR 2
+
+// Load tree
+LT "${TREE}"
+
+// Convert tree to hts_engine format
+CT "${OUTPUT_DIR}"
+
+// Convert mmf for hts_engine format
+CM "${OUTPUT_DIR}"
