@@ -165,8 +165,9 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
      ****************************************************************************************/
     private void addPrepareEnvironmentTask(Project project)
     {
-        project.task('prepareEnvironment')
+        project.task('prepareEnvironment', dependsOn: project.rootProject.tasks.prepareData)
         {
+            
             // Create model and trees directories
             new File(project.proto_dir).mkdirs()
             new File(project.cmp_model_dir).mkdirs()
@@ -244,14 +245,14 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
      ** Export stages
      ****************************************************************************************/
     private void addExportingTasks(Project project) {
-        project.task('training', dependsOn: "trainClusteredModels" + (project.user_configuration.settings.training.nb_clustering - 1))
+        project.task('training') //, dependsOn: "trainClusteredModels" + (project.user_configuration.settings.training.nb_clustering - 1))
         {
             if (project.user_configuration.gv.use) {
                 dependsOn.add("trainGV")
             }
         }
 
-        project.task('exportPreparation') //, dependsOn:'training')
+        project.task('exportPreparation', dependsOn:'training')
         { 
             // Models
             project.trained_files.put("mmf_cmp", project.cmp_model_dir + "/clustered.mmf." + (project.user_configuration.settings.training.nb_clustering - 1))
@@ -289,8 +290,10 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
 
         project.task('exportRAW', dependsOn: 'exportPreparation')
         {
-            // FIXME: Inputs & Outputs
-            Raw.export(project.user_configuration, project.buildDir, project.trained_files)
+            doLast {
+                // FIXME: Inputs & Outputs
+                Raw.export(project.user_configuration, project.buildDir, project.trained_files)
+            }
         }
     }
 
