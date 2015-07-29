@@ -6,24 +6,12 @@ import java.nio.file.Paths
 
 class MaryTTS {
 
-    def static export(project) {
-        
-        /*******************************************************************************************
-         ** 0. Load the voice groovy config file (FIXME: remove and use only the json file)
-         *******************************************************************************************/
-        def config = new ConfigSlurper().parse(project.rootProject.file('voice.groovy').text)
-        config.voice.nameCamelCase = config.voice.name?.split(/[^_A-Za-z0-9]/).collect { it.capitalize() }.join()
-        config.voice.locale = config.voice.locale?.country ? new Locale(config.voice.locale.language, config.voice.locale.country) : new Locale(config.voice.locale.language)
-        config.voice.localeXml = [config.voice.locale.language, config.voice.locale.country].join('-')
-        config.voice.maryLocaleXml = config.voice.locale.language.equalsIgnoreCase(config.voice.locale.country) ? config.voice.locale.language : config.voice.localeXml
-        def basenames = project.rootProject.subprojects.findAll { it.parent.name == 'data' }.collect { it.name }
-
-        
+    def static export(project) {        
         /*******************************************************************************************
          ** 1. Copy the files into a flat directory
-         *******************************************************************************************/        
+         *******************************************************************************************/
         def user_configuration = project.user_configuration
-        def export_dir = "${project.buildDir}/marytts/voice/${config.voice.name}"
+        def export_dir = project.export_dir
         def trained_files = project.trained_files
         
         // Define directories
@@ -85,13 +73,24 @@ class MaryTTS {
             
             include 'voice-straight-hsmm.config'
             rename { file -> "voice.config"}
-
             
-            expand(config)
+            expand(project.properties)
         }
         
         /*******************************************************************************************
-         ** 4. Generate the voice jar
+         ** 4. Generate the project.voice.class
+         *******************************************************************************************/
+        project.copy {
+            from project.template_dir
+            into project.maryttsSrcDir
+            
+            include 'Config.java'
+    
+            expand(project.properties)
+        }
+        
+        /*******************************************************************************************
+         ** 4. Generate the voice jar (FIXME: inserted in the htsvoicebuilding class => I clearly hate that !)
          *******************************************************************************************/
     }
 }

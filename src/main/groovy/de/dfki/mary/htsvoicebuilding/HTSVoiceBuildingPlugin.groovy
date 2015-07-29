@@ -56,7 +56,20 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
         
         project.ext {
             maryttsVersion = '5.1.2'
-
+            maryttsSrcDir = "$project.buildDir/marytts/src/main/java"
+            maryttsResourcesDir = "$project.buildDir/marytts/src/main/resources"
+            // maryttsTestSrcDir = "$project.buildDir/marytts/"
+            new ConfigSlurper().parse(project.rootProject.file('voice.groovy').text).each { key, value ->
+                set key, value
+            }
+            voice.nameCamelCase = voice.name?.split(/[^_A-Za-z0-9]/).collect { it.capitalize() }.join()
+            voice.locale = voice.locale?.country ? new Locale(voice.locale.language, voice.locale.country) : new Locale(voice.locale.language)
+            voice.localeXml = [voice.locale.language, voice.locale.country].join('-')
+            voice.maryLocaleXml = voice.locale.language.equalsIgnoreCase(voice.locale.country) ? voice.locale.language : voice.localeXml
+            basenames = project.rootProject.subprojects.findAll { it.parent.name == 'data' }.collect { it.name }
+            
+            export_dir = "${project.buildDir}/marytts/src/main/resources/marytts/voice/${voice.name}"
+            
             // User configuration
             user_configuration = config;
             
@@ -122,31 +135,35 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
             }
         }
 
-        project.configurations.create 'legacy'
-
         project.sourceSets {
             main {
                 java {
-                    // srcDir project.generatedSrcDir
+                    srcDir project.maryttsSrcDir
+                }
+                resources {
+                    srcDir project.maryttsResourcesDir
                 }
             }
-            test {
-                java {
-                    // srcDir project.generatedTestSrcDir
-                }
-            }
+            // test {
+            //     java {
+            //         srcDir project.generatedTestSrcDir
+            //     }
+            // }
+        }
+
+        
+        project.jar.manifest {
+            attributes('Created-By': "${System.properties['java.version']} (${System.properties['java.vendor']})",
+                    'Built-By': System.properties['user.name'],
+                    'Built-With': "gradle-${project.gradle.gradleVersion}, groovy-${GroovySystem.version}")
         }
 
 
         project.afterEvaluate {
-            // project.dependencies {
-            //     compile "de.dfki.mary:marytts-lang-$project.voice.locale.language:$project.maryttsVersion"
-            //     legacy("de.dfki.mary:marytts-builder:$project.maryttsVersion") {
-            //         exclude module: 'mwdumper'
-            //         exclude module: 'sgt'
-            //     }
-            //     testCompile "junit:junit:4.11"
-            // }
+            project.dependencies {
+                compile "de.dfki.mary:marytts-lang-$project.voice.locale.language:$project.maryttsVersion"
+                testCompile "junit:junit:4.11"
+            }
             
             // Add the tasks
             addPrepareEnvironmentTask(project)
@@ -295,13 +312,28 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
             }
         }
 
-        project.task('exportMaryTTS') //, dependsOn: 'exportPreparation')
-        {
+
+        project.task('prepareMary') { //, dependsOn: 'exportPreparation') {
             outputs.upToDateWhen { false } 
+            def serviceLoaderFile = project.file("$project.maryttsResourcesDir/META-INF/services/marytts.config.MaryConfig")
+
+            // FIXME: Inputs & Outputs
+            outputs.files serviceLoaderFile
+            outputs.files project.fileTree("$project.export_dir")
+            
             doLast {
-                // FIXME: Inputs & Outputs
                 MaryTTS.export(project)
+
+                // Generate Service loader : 
+                serviceLoaderFile.parentFile.mkdirs()
+                serviceLoaderFile.text = "marytts.voice.${project.voice.name}.Config"
+                project.processResources {project.fileTree("$project.export_dir")}
             }
+        }
+
+        project.compileJava.dependsOn project.prepareMary
+        
+        project.task('exportMaryTTS', dependsOn:project.jar)  {
         }
     }
 
