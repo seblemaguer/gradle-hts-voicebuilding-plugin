@@ -65,6 +65,10 @@ class GlobalVarianceStages
         // TODO: look if we can parallelize
         project.task('forceAlignment', dependsOn:"trainMonophoneMMF")
         {
+            outputs.upToDateWhen { 
+                false 
+            } 
+
             def output_files = []
             (new File(DataFileFinder.getFilePath(project.user_configuration.data.scp))).eachLine{ cur_file ->
                 def basename = (new File(cur_file)).name.replace(".cmp", "")
@@ -104,7 +108,7 @@ class GlobalVarianceStages
             doLast {
                 withPool(project.nb_proc)
                 {
-                    def file_list = (new File(DataFileFinder.getFilePath(project.user_configuration.data.scp))).readLines() as List
+                    def file_list = (new File(DataFileFinder.getFilePath(project.user_configuration.data.scp))).readLines() as List // FIXME: needs to use the "build.scp"
                     file_list.eachParallel { cur_file ->
                         def basename = (new File(cur_file)).name.replace(".cmp", "")
                         println("dealing with $basename.....")
@@ -329,7 +333,7 @@ class GlobalVarianceStages
             def question_file = (new File (DataFileFinder.getFilePath(project.user_configuration.data.question_file_gv)))
             inputs.files project.gv_dir + "/fullcontext.mmf", question_file
             outputs.files project.gv_dir + "/clustered.mmf.noembedded.gz"
-            outputs.upToDateWhen { false }
+            // outputs.upToDateWhen { false }
 
             doLast {
 

@@ -101,8 +101,9 @@ class ContextStages
         
         project.task('trainFullContext0', dependsOn:['generateFullcontextFromMonophone'])
         {
-            inputs.files project.cmp_model_dir + "/fullcontext.mmf", project.dur_model_dir + "/fullcontext.mmf"
-            outputs.files project.cmp_model_dir + "/fullcontext.mmf.0.embedded.gz", project.dur_model_dir + "/fullcontext.mmf.0.embedded.gz"
+            inputs.files project.cmp_model_dir + "/fullcontext.mmf.0", project.dur_model_dir + "/fullcontext.mmf.0"
+            outputs.files project.cmp_model_dir + "/fullcontext.mmf.0.embedded.gz", project.dur_model_dir + "/fullcontext.mmf.0.embedded.gz",  project.cmp_model_dir + "/fullcontext.mmf.0", project.dur_model_dir + "/fullcontext.mmf.0"
+
             
             doLast {
                 for (i in 1..project.user_configuration.settings.training.nIte)

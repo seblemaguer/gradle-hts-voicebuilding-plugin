@@ -5,8 +5,12 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 class Raw {
-    def static export(user_configuration, export_dir, trained_files) {
+    def static export(project) {
 
+        def user_configuration = project.user_configuration
+        def export_dir = project.buildDir
+        def trained_files = project.trained_files
+        
         // Define directories
         def model_dir = "$export_dir/raw/models"
         def tree_dir = "$export_dir/raw/trees"

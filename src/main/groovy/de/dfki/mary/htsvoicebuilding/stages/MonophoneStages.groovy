@@ -93,8 +93,27 @@ class MonophoneStages {
 
         project.task('generateMonophoneMMF', dependsOn: 'initialiseMonophoneModels')
         {
-            // TODO: inputs
-            outputs.files project.cmp_model_dir + "/monophone.mmf.noembedded.gz", project.dur_model_dir + "/monophone.mmf.noembedded.gz"
+            // outputs.upToDateWhen { 
+            //     false 
+            // } 
+
+            // FIXME: use the list ! 
+            def monophone_set = new HashSet()
+            (new File(DataFileFinder.getFilePath(project.user_configuration.data.scp))).eachLine{ cur_file ->
+                def basename = (new File(cur_file)).name.replace(".cmp", "")
+            
+                // Analyse file
+                (new File(DataFileFinder.getFilePath(project.user_configuration.data.mono_lab_dir + "/" + basename + ".lab"))).eachLine { cur_lab ->
+                    def line_arr = cur_lab =~ /^[ \t]*([0-9]+)[ \t]+([0-9]+)[ \t]+(.+)/
+                    monophone_set.add(line_arr[0][3])        
+                }
+            }
+            
+            monophone_set.each { phone ->
+                inputs.files "$project.cmp_model_dir/HInit/$phone", "$project.cmp_model_dir/HRest/$phone"
+            }
+            
+            outputs.files project.cmp_model_dir + "/monophone.mmf.noembedded.gz", project.dur_model_dir + "/monophone.mmf.noembedded.gz", project.cmp_model_dir + "/monophone.mmf",project.cmp_model_dir + "/monophone.mmf"
         
             // Generate HHEd script
             project.copy {
@@ -144,7 +163,12 @@ class MonophoneStages {
     
         project.task('trainMonophoneMMF', dependsOn: 'generateMonophoneMMF')
         {
-            outputs.files project.cmp_model_dir + "/monophone.mmf.embedded.gz", project.dur_model_dir + "/monophone.mmf.embedded.gz"
+            // outputs.upToDateWhen { 
+            //     false 
+            // } 
+
+            // FIXME: inputs
+            outputs.files project.cmp_model_dir + "/monophone.mmf.embedded.gz", project.dur_model_dir + "/monophone.mmf.embedded.gz", project.cmp_model_dir + "/monophone.mmf",project.cmp_model_dir + "/monophone.mmf"
         
             doLast {
                 if (project.user_configuration.settings.daem.use) {

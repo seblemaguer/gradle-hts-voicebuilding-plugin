@@ -211,9 +211,8 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
                              'proto',
                              'protogv',
                              'train.cfg',
+                             'voice-straight-hsmm.config',
                              'vfloordur',
-                             'voice-hsmm.config',
-                             'voice.config'
                             ].collect {
                 project.file "$project.template_dir/$it"
             }
@@ -245,7 +244,7 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
      ** Export stages
      ****************************************************************************************/
     private void addExportingTasks(Project project) {
-        project.task('training') //, dependsOn: "trainClusteredModels" + (project.user_configuration.settings.training.nb_clustering - 1))
+        project.task('training', dependsOn: "trainClusteredModels" + (project.user_configuration.settings.training.nb_clustering - 1))
         {
             if (project.user_configuration.gv.use) {
                 dependsOn.add("trainGV")
@@ -292,7 +291,16 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
         {
             doLast {
                 // FIXME: Inputs & Outputs
-                Raw.export(project.user_configuration, project.buildDir, project.trained_files)
+                Raw.export(project)
+            }
+        }
+
+        project.task('exportMaryTTS') //, dependsOn: 'exportPreparation')
+        {
+            outputs.upToDateWhen { false } 
+            doLast {
+                // FIXME: Inputs & Outputs
+                MaryTTS.export(project)
             }
         }
     }
@@ -308,6 +316,12 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
             // RAW
             if (project.user_configuration.output.raw) {
                 dependsOn "exportRAW"
+            }
+
+            
+            // RAW
+            if (project.user_configuration.output.marytts) {
+                dependsOn "exportMaryTTS"
             }
         }
     }
