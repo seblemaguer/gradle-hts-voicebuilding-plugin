@@ -1,4 +1,4 @@
-package marytts.voice.${voice.nameCamelCase};
+package marytts.voice.${voice.name};
 
 import marytts.config.VoiceConfig;
 import marytts.exceptions.MaryConfigurationException;
