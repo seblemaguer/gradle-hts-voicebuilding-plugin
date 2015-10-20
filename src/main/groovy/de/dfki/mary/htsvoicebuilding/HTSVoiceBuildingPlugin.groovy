@@ -251,46 +251,49 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
             }
         }
 
-        project.task('exportPreparation') //, dependsOn:'training')
-        { 
-            // Models
-            project.trained_files.put("mmf_cmp", project.cmp_model_dir + "/clustered.mmf." + (project.user_configuration.settings.training.nb_clustering - 1))
-            project.trained_files.put("mmf_dur", project.dur_model_dir + "/clustered.mmf." + (project.user_configuration.settings.training.nb_clustering - 1))
+        project.task('exportPreparation', dependsOn:'training')
+        {
+            doLast {
+                // Models
+                project.trained_files.put("mmf_cmp", project.cmp_model_dir + "/clustered.mmf." + (project.user_configuration.settings.training.nb_clustering - 1))
+                    project.trained_files.put("mmf_dur", project.dur_model_dir + "/clustered.mmf." + (project.user_configuration.settings.training.nb_clustering - 1))
             
-            if (project.user_configuration.gv.use) {    
-                project.trained_files.put("mmf_gv", project.gv_dir + "/clustered.mmf")
-            }
+                    if (project.user_configuration.gv.use) {    
+                        project.trained_files.put("mmf_gv", project.gv_dir + "/clustered.mmf")
+                    }
             
             
-            // Tree files
-            project.user_configuration.models.cmp.streams.each { stream ->
-                project.trained_files.put(stream.name + "_tree",
-                                          project.tree_dir + "/" + stream.name  + "." + (project.user_configuration.settings.training.nb_clustering - 1) + ".inf")
-                
-                if (project.user_configuration.gv.use) {
-                    project.trained_files.put(stream.name + "_tree_gv",
-                                      project.gv_dir + "/" + stream.name  + ".inf")
+                // Tree files
+                project.user_configuration.models.cmp.streams.each { stream ->
+                    project.trained_files.put(stream.name + "_tree",
+                            project.tree_dir + "/" + stream.name  + "." + (project.user_configuration.settings.training.nb_clustering - 1) + ".inf")
+
+                        if (project.user_configuration.gv.use) {
+                            project.trained_files.put(stream.name + "_tree_gv",
+                                    project.gv_dir + "/" + stream.name  + ".inf")
+                        }
                 }
+            
+                project.trained_files.put("dur_tree",
+                        project.tree_dir + "/dur." + (project.user_configuration.settings.training.nb_clustering - 1) + ".inf")
+            
+                    // Lists
+                    project.trained_files.put("full_list",
+                            project.full_list_filename)
+
+                    if (project.user_configuration.gv.use) {    
+                        project.trained_files.put("list_gv",
+                                project.list_dir + "/gv.list")
+                    }
             }
-            
-            project.trained_files.put("dur_tree",
-                              project.tree_dir + "/dur." + (project.user_configuration.settings.training.nb_clustering - 1) + ".inf")
-            
-            // Lists
-            project.trained_files.put("full_list",
-                              project.full_list_filename)
-            
-            if (project.user_configuration.gv.use) {    
-                project.trained_files.put("list_gv",
-                                  project.list_dir + "/gv.list")
-            }
-            
         }
 
         project.task('exportRAW', dependsOn: 'exportPreparation')
         {
-            // FIXME: Inputs & Outputs
-            Raw.export(project.user_configuration, project.buildDir, project.trained_files)
+            doLast {
+                // FIXME: Inputs & Outputs
+                Raw.export(project.user_configuration, project.buildDir, project.trained_files)
+            }
         }
     }
 
