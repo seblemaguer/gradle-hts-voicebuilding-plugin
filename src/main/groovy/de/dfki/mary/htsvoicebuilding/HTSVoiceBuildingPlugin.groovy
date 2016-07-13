@@ -73,6 +73,9 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
             // User configuration
             user_configuration = config;
 
+            // Scp
+            train_scp = "$project.buildDir/train.scp"
+
             // List directories
             list_dir = "$project.buildDir/lists"
             mono_list_filename = "$project.list_dir/mono.list"
@@ -154,8 +157,8 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
 
         project.jar.manifest {
             attributes('Created-By': "${System.properties['java.version']} (${System.properties['java.vendor']})",
-                    'Built-By': System.properties['user.name'],
-                    'Built-With': "gradle-${project.gradle.gradleVersion}, groovy-${GroovySystem.version}")
+            'Built-By': System.properties['user.name'],
+            'Built-With': "gradle-${project.gradle.gradleVersion}, groovy-${GroovySystem.version}")
         }
 
 

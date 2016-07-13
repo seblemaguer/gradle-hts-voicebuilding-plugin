@@ -27,7 +27,24 @@ class InitialisationStages {
      ****************************************************************************************/
     public static void addTasks(Project project)
     {
-        project.task('generateMonophoneList', dependsOn: 'prepareEnvironment')
+        project.task('generateSCPFile', dependsOn: 'prepareEnvironment')
+        {
+            def train_scp_fh = new File(project.train_scp)
+            inputs.files project.user_configuration.data.list_files
+            outputs.files train_scp_fh
+
+            doLast {
+                (new File(DataFileFinder.getFilePath(project.user_configuration.data.list_files))).eachLine{ cur_file ->
+                    def basename = (new File(cur_file)).name
+                    train_scp_fh << "$project.buildDir/cmp/" // FIXME: be more clever for directory
+                    train_scp_fh << basename << ".cmp"
+                    train_scp_fh << "\n"
+                }
+            }
+
+        }
+
+        project.task('generateMonophoneList', dependsOn: 'generateSCPFile')
         {
             outputs.files project.mono_mlf_filename, project.mono_list_filename
 
@@ -38,8 +55,8 @@ class InitialisationStages {
 
             // 2. From known mono_lab_dir and train scp infos
             def model_set = new HashSet()
-            (new File(DataFileFinder.getFilePath(project.user_configuration.data.scp))).eachLine{ cur_file ->
-                def basename = (new File(cur_file)).name.replace(".cmp", "")
+            (new File(DataFileFinder.getFilePath(project.user_configuration.data.list_files))).eachLine{ cur_file ->
+                def basename = (new File(cur_file)).name
                 (new File(DataFileFinder.getFilePath(project.user_configuration.data.mono_lab_dir + "/" + basename + ".lab"))).eachLine { line ->
 
                     def line_arr = line =~ /^[ \t]*([0-9]+)[ \t]+([0-9]+)[ \t]+(.+)/
@@ -109,7 +126,6 @@ class InitialisationStages {
             outputs.files project.train_config_filename
 
             // train.cfg
-
             def nbstream = 0
             def vfloorvalues = ""
             project.user_configuration.models.cmp.streams.each { stream ->
@@ -177,7 +193,7 @@ class InitialisationStages {
             }
         }
 
-        project.task('initModels', dependsOn:['generatePrototype', 'generateMonophoneList', 'generateConfigurationFiles'])
+        project.task('initModels', dependsOn:['generatePrototype', 'generateSCPFile', 'generateMonophoneList', 'generateConfigurationFiles'])
         {
             // logging.captureStandardOutput LogLevel.INFO
             // logging.captureStandardError LogLevel.ERROR
@@ -196,7 +212,7 @@ class InitialisationStages {
             doLast {
                 // CMP parts
                 //   1. Get average model
-                project.hts_wrapper.HCompV(DataFileFinder.getFilePath(project.user_configuration.data.scp),
+                project.hts_wrapper.HCompV(project.train_scp,
                                            "$project.proto_dir/proto",
                                            "average.mmf",
                                            project.cmp_model_dir)

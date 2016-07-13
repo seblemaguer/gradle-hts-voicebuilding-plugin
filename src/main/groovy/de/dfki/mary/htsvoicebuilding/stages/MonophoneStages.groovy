@@ -31,8 +31,8 @@ class MonophoneStages {
         {
             // FIXME: use the list !
             def monophone_set = new HashSet()
-            (new File(DataFileFinder.getFilePath(project.user_configuration.data.scp))).eachLine{ cur_file ->
-                def basename = (new File(cur_file)).name.replace(".cmp", "")
+            (new File(DataFileFinder.getFilePath(project.user_configuration.data.list_files))).eachLine{ cur_file ->
+                def basename = (new File(cur_file)).name
 
                 // Analyse file
                 (new File(DataFileFinder.getFilePath(project.user_configuration.data.mono_lab_dir + "/" + basename + ".lab"))).eachLine { cur_lab ->
@@ -46,6 +46,7 @@ class MonophoneStages {
             monophone_set.each { phone ->
                 outputs.files "$project.cmp_model_dir/HInit/$phone", "$project.cmp_model_dir/HRest/$phone"
             }
+
             // Generate project
             doLast {
                 withPool(project.nb_proc) {
@@ -75,13 +76,13 @@ class MonophoneStages {
                              *   - WARNING [-7032]  OWarn: change HMM Set msdflag[0] in HRest
                              */
                             // HInit
-                            project.hts_wrapper.HInit(phone, DataFileFinder.getFilePath(project.user_configuration.data.scp),
+                            project.hts_wrapper.HInit(phone, project.train_scp,
                                                       "$project.proto_dir/proto", "$project.cmp_model_dir/init.mmf",
                                                       project.mono_mlf_filename, "$project.cmp_model_dir/HInit")
 
 
                             // HInit
-                            project.hts_wrapper.HRest(phone, DataFileFinder.getFilePath(project.user_configuration.data.scp),
+                            project.hts_wrapper.HRest(phone, project.train_scp,
                                                       "$project.cmp_model_dir/HInit", "$project.cmp_model_dir/init.mmf",
                                                       project.mono_mlf_filename,
                                                       "$project.cmp_model_dir/HRest", "$project.dur_model_dir/HRest")
@@ -93,14 +94,11 @@ class MonophoneStages {
 
         project.task('generateMonophoneMMF', dependsOn: 'initialiseMonophoneModels')
         {
-            // outputs.upToDateWhen {
-            //     false
-            // }
 
             // FIXME: use the list !
             def monophone_set = new HashSet()
-            (new File(DataFileFinder.getFilePath(project.user_configuration.data.scp))).eachLine{ cur_file ->
-                def basename = (new File(cur_file)).name.replace(".cmp", "")
+            (new File(DataFileFinder.getFilePath(project.user_configuration.data.list_files))).eachLine{ cur_file ->
+                def basename = (new File(cur_file)).name
 
                 // Analyse file
                 (new File(DataFileFinder.getFilePath(project.user_configuration.data.mono_lab_dir + "/" + basename + ".lab"))).eachLine { cur_lab ->
@@ -180,7 +178,7 @@ class MonophoneStages {
 
                             k = (i / project.user_configuration.settings.daem.nIte) ** project.user_configuration.settings.daem.alpha
 
-                            project.hts_wrapper.HERest(DataFileFinder.getFilePath(project.user_configuration.data.scp),
+                            project.hts_wrapper.HERest(project.train_scp,
                                                        project.mono_list_filename,
                                                        project.mono_mlf_filename,
                                                        project.cmp_model_dir + "/monophone.mmf",
@@ -195,7 +193,7 @@ class MonophoneStages {
                         //
                         println("\n\nIteration $i of Embedded Re-estimation")
 
-                        project.hts_wrapper.HERest(DataFileFinder.getFilePath(project.user_configuration.data.scp),
+                        project.hts_wrapper.HERest(project.train_scp,
                                                    project.mono_list_filename,
                                                    project.mono_mlf_filename,
                                                    project.cmp_model_dir + "/monophone.mmf",
