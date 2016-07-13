@@ -65,10 +65,6 @@ class GlobalVarianceStages
         // TODO: look if we can parallelize
         project.task('forceAlignment', dependsOn:"trainMonophoneMMF")
         {
-            outputs.upToDateWhen {
-                false
-            }
-
             def output_files = []
             (new File(DataFileFinder.getFilePath(project.user_configuration.data.list_files))).eachLine{ cur_file ->
                 def basename = (new File(cur_file)).name
@@ -288,12 +284,6 @@ class GlobalVarianceStages
                     full_mmf.append("~h \"$line\"\n")
                     full_mmf.append(tail)
                 }
-
-
-                // exec {
-                //     def bash_cmd = ["gzip", "-c", project.gv_dir + "/fullcontext.mmf", ">", project.gv_dir + "/fullcontext.mmf.noembedded.gz"]
-                //     commandLine("bash", "-c", bash_cmd.join(" "))
-                // }
             }
         }
 
@@ -313,11 +303,6 @@ class GlobalVarianceStages
                                                  "-s", project.gv_dir + "/stats",
                                                  "-w", 0
                                              ])
-
-                // exec {
-                //     def bash_cmd = ["gzip", "-c", project.gvDirectory + "/fullcontext.mmf", ">", project.gvDirectory + "/fullcontext.mmf.embedded.gz"]
-                //     commandLine("bash", "-c", bash_cmd.join(" "))
-                // }
             }
         }
 
@@ -333,7 +318,6 @@ class GlobalVarianceStages
             def question_file = (new File (DataFileFinder.getFilePath(project.user_configuration.data.question_file_gv)))
             inputs.files project.gv_dir + "/fullcontext.mmf", question_file
             outputs.files project.gv_dir + "/clustered.mmf.noembedded.gz"
-            // outputs.upToDateWhen { false }
 
             doLast {
 
@@ -385,11 +369,6 @@ class GlobalVarianceStages
                                                   params)
                     s += 1
                 }
-
-                // exec {
-                //     def bash_cmd = ["gzip", "-c", project.gvDirectory + "/clustered.mmf", ">", project.gvDirectory + "/clustered.mmf.noembedded.gz"]
-                //     commandLine("bash", "-c", bash_cmd.join(" "))
-                // }
             }
         }
 
@@ -404,10 +383,6 @@ class GlobalVarianceStages
                                              project.gv_dir + "/clustered.mmf",
                                              project.gv_dir,
                                              [])
-                // exec {
-                //     def bash_cmd = ["gzip", "-c", project.gvDirectory + "/clustered.mmf", ">", project.gvDirectory + "/clustered.mmf.embedded.gz"]
-                //     commandLine("bash", "-c", bash_cmd.join(" "))
-                // }
             }
         }
 

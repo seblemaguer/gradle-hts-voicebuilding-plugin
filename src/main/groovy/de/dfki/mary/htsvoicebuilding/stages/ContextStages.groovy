@@ -48,8 +48,8 @@ class ContextStages
 
         project.task('generateFullcontextFromMonophone', dependsOn:['generateFulllist', 'trainMonophoneMMF'])
         {
-            inputs.files project.cmp_model_dir + "/monophone.mmf", project.dur_model_dir + "/monophone.mmf"
-            outputs.files  project.cmp_model_dir + "/fullcontext.mmf.0", project.dur_model_dir + "/fullcontext.mmf.0"
+            inputs.files project.full_mlf_filename, project.full_list_filename, "$project.buildDir/achievedstages/trainMonophoneMMF"
+            outputs.files "$project.buildDir/achievedstages/generateFullcontextFromMonophone"
 
 
             doLast {
@@ -86,24 +86,14 @@ class ContextStages
                                               project.dur_model_dir + "/monophone.mmf", project.dur_model_dir + "/fullcontext.mmf.0",
                                               [])
 
-                /*
-                  exec {
-                  def bash_cmd = ["gzip", "-c", project.cmpModelDirectory + "/fullcontext.mmf.0", ">", project.cmpModelDirectory + "/fullcontext.mmf.0.noembedded.gz"]
-                  commandLine("bash", "-c", bash_cmd.join(" "))
-                  }
-                  exec {
-                  def bash_cmd = ["gzip", "-c", project.durModelDirectory + "/fullcontext.mmf.0", ">", project.durModelDirectory + "/fullcontext.mmf.0.noembedded.gz"]
-                  commandLine("bash", "-c", bash_cmd.join(" "))
-                  }
-                */
+                (new File("$project.buildDir/achievedstages/generateFullcontextFromMonophone")).text = "ok"
             }
         }
 
         project.task('trainFullContext0', dependsOn:['generateFullcontextFromMonophone'])
         {
-            inputs.files project.cmp_model_dir + "/fullcontext.mmf.0", project.dur_model_dir + "/fullcontext.mmf.0"
-            outputs.files project.cmp_model_dir + "/fullcontext.mmf.0.embedded.gz", project.dur_model_dir + "/fullcontext.mmf.0.embedded.gz",  project.cmp_model_dir + "/fullcontext.mmf.0", project.dur_model_dir + "/fullcontext.mmf.0"
-
+            inputs.files "$project.buildDir/achievedstages/generateFullcontextFromMonophone"
+            outputs.files "$project.buildDir/achievedstages/trainFullContext0"
 
             doLast {
                 for (i in 1..project.user_configuration.settings.training.nIte)
@@ -116,18 +106,9 @@ class ContextStages
                                                project.dur_model_dir,
                                                ["-C", project.non_variance_config_filename, "-s", project.cmp_model_dir + "/stats.0", "-w", 0.0])
                 }
-            }
-            /*
-              exec {
-              def bash_cmd = ["gzip", "-c", project.cmpModelDirectory + "/fullcontext.mmf.0", ">", project.cmpModelDirectory + "/fullcontext.mmf.0.embedded.gz"]
-              commandLine("bash", "-c", bash_cmd.join(" "))
-              }
 
-              exec {
-              def bash_cmd = ["gzip", "-c", project.durModelDirectory + "/fullcontext.mmf.0", ">", project.durModelDirectory + "/fullcontext.mmf.0.embedded.gz"]
-              commandLine("bash", "-c", bash_cmd.join(" "))
-              }
-            */
+                (new File("$project.buildDir/achievedstages/trainFullContext0")).text = "ok"
+            }
         }
 
 
@@ -137,9 +118,9 @@ class ContextStages
 
             project.task("clusteringCMP" + local_cur_clus_it, dependsOn: "trainFullContext" + local_cur_clus_it)
             {
-
-                inputs.files project.cmp_model_dir + "/stats." + local_cur_clus_it, project.cmp_model_dir + "/fullcontext.mmf." + local_cur_clus_it
-                outputs.files project.cmp_model_dir + "/clustered.mmf." + local_cur_clus_it + ".noembedded.gz"
+                inputs.files "$project.buildDir/achievedstages/trainFullContext" + local_cur_clus_it
+                inputs.files project.cmp_model_dir + "/stats." + local_cur_clus_it
+                outputs.files "$project.buildDir/achievedstages/clusteringCMP" + local_cur_clus_it
 
                 doLast {
                     def project_cur_stream = 1
@@ -253,21 +234,17 @@ class ContextStages
                                                       [])
                     }
 
-                    // //   Archive
-                    // exec {
-                    //     def bash_cmd = ["gzip", "-c", project.cmpModelDirectory + "/clustered.mmf." + local_cur_clus_it, ">",
-                    //                     project.cmpModelDirectory + "/clustered.mmf." + local_cur_clus_it + ".noembedded.gz"]
-                    //     commandLine("bash", "-c", bash_cmd.join(" "))
-                    // }
+                    (new File("$project.buildDir/achievedstages/clusteringCMP" + local_cur_clus_it)).text = "ok"
                 }
             }
 
             project.task("clusteringDUR" + cur_clus_it, dependsOn: "trainFullContext" + local_cur_clus_it)
             {
                 def questions_file = (new File(DataFileFinder.getFilePath(project.user_configuration.data.question_file)))
+                inputs.files questions_file, project.dur_model_dir + "/stats." + local_cur_clus_it
+                inputs.files "$project.buildDir/achievedstages/trainFullcontext" + local_cur_clus_it
+                outputs.files "$project.buildDir/achievedstages/clusteringDUR" + local_cur_clus_it, project.tree_dir + "/dur." + local_cur_clus_it + ".inf"
 
-                inputs.files questions_file, project.dur_model_dir + "/stats." + local_cur_clus_it, project.dur_model_dir + "/fullcontext.mmf." + local_cur_clus_it
-                outputs.files project.dur_model_dir + "/clustered.mmf"  + "." + local_cur_clus_it + ".noembedded.gz", project.tree_dir + "/dur." + local_cur_clus_it + ".inf"
                 doLast {
                     // Copy stats
                     def cmp_stats_file = new File(project.cmp_model_dir + "/stats." + local_cur_clus_it)
@@ -322,18 +299,15 @@ class ContextStages
                                                   project.dur_model_dir + "/clustered.mmf." + local_cur_clus_it,
                                                   params)
 
-
-                    // //   4. archive
-                    // exec {
-                    //     def bash_cmd = ["gzip", "-c", project.dur_model_dir + "/clustered.mmf." + local_cur_clus_it, ">", project.dur_model_dir + "/clustered.mmf." + local_cur_clus_it +".noembedded.gz"]
-                    //     commandLine("bash", "-c", bash_cmd.join(" "))
-                    // }
+                    (new File("$project.buildDir/achievedstages/clusteringDUR" + local_cur_clus_it)).text = "ok"
                 }
             }
 
             project.task("trainClusteredModels" + local_cur_clus_it, dependsOn:["clusteringCMP" + cur_clus_it, "clusteringDUR" + cur_clus_it])
             {
-                outputs.files project.cmp_model_dir + "/clustered.mmf." + local_cur_clus_it +".embedded.gz", project.dur_model_dir + "/clustered.mmf." + local_cur_clus_it +".embedded.gz"
+                outputs.files "$project.buildDir/achievedstages/clusteringCMP" + local_cur_clus_it, "$project.buildDir/achievedstages/clusteringDUR" + local_cur_clus_it
+                outputs.files "$project.buildDir/achievedstages/trainClusteredModels" + local_cur_clus_it
+
                 doLast {
 
                     for (i in 1..project.user_configuration.settings.training.nIte) {
@@ -346,19 +320,10 @@ class ContextStages
                                                    project.cmp_model_dir,
                                                    project.dur_model_dir,
                                                    [])
-
-                        /*
-                          exec {
-                          def bash_cmd = ["gzip", "-c", project.cmpModelDirectory + "/clustered.mmf." + local_cur_clus_it, ">", project.cmpModelDirectory + "/clustered.mmf." + local_cur_clus_it + ".embedded.gz"]
-                          commandLine("bash", "-c", bash_cmd.join(" "))
-                          }
-
-                          exec {
-                          def bash_cmd = ["gzip", "-c", project.durModelDirectory + "/clustered.mmf." + local_cur_clus_it, ">", project.durModelDirectory + "/clustered.mmf." + local_cur_clus_it + ".embedded.gz"]
-                          commandLine("bash", "-c", bash_cmd.join(" "))
-                          }
-                        */
                     }
+
+
+                    (new File("$project.buildDir/achievedstages/trainClusteredModels" + local_cur_clus_it)).text = "ok"
                 }
             }
 
@@ -367,7 +332,8 @@ class ContextStages
 
                 project.task("untyingCMP" + cur_clus_it, dependsOn: "trainClusteredModels" + cur_clus_it) {
 
-                    outputs.files project.cmp_model_dir + "/fullcontext.mmf." + (local_cur_clus_it+1) + ".noembedded.gz"
+                    inputs.files "$project.buildDir/achievedstages/trainClusteredModels" + cur_clus_it
+                    outputs.files "$project.buildDir/achievedstages/untyingCMP" + cur_clus_it
 
                     //  1. Generate hhed script file
                     def cur_stream = 1
@@ -405,12 +371,8 @@ class ContextStages
                                                       project.cmp_model_dir + "/fullcontext.mmf"  + "." + (local_cur_clus_it+1),
                                                       [])
 
-                        // //  3. Archive
-                        // exec {
-                        //     def bash_cmd = ["gzip", "-c", project.cmpModelDirectory + "/fullcontext.mmf." + (local_cur_clus_it+1), ">",
-                        //                     project.cmpModelDirectory + "/fullcontext.mmf"  + "." + (local_cur_clus_it+1) + ".noembedded.gz"]
-                        //     commandLine("bash", "-c", bash_cmd.join(" "))
-                        // }
+
+                        (new File("$project.buildDir/achievedstages/untyingCMP" + cur_clus_it)).text = "ok"
                     }
 
                 }
@@ -418,7 +380,8 @@ class ContextStages
 
                 project.task("untyingDUR" + local_cur_clus_it, dependsOn: "trainClusteredModels" + local_cur_clus_it) {
 
-                    outputs.files project.dur_model_dir + "/fullcontext.mmf"  + "." + (local_cur_clus_it+1) + ".noembedded.gz"
+                    inputs.files "$project.buildDir/achievedstages/trainClusteredModels" + cur_clus_it
+                    outputs.files "$project.buildDir/achievedstages/untyingDUR" + cur_clus_it
 
                     //  1. Generate hhed script file
                     def dur_untying_file = new File(project.hhed_script_dir + "/untying_dur.hhed")
@@ -433,18 +396,15 @@ class ContextStages
                                                       project.dur_model_dir + "/fullcontext.mmf"  + "." + (local_cur_clus_it+1),
                                                       [])
 
-                        // //  3. Archive
-                        // exec {
-                        //     def bash_cmd = ["gzip", "-c", project.durModelDirectory + "/fullcontext.mmf." + (local_cur_clus_it+1), ">",
-                        //                     project.durModelDirectory + "/fullcontext.mmf"  + "." + (local_cur_clus_it+1) + ".noembedded.gz"]
-                        //     commandLine("bash", "-c", bash_cmd.join(" "))
-                        // }
+                        (new File("$project.buildDir/achievedstages/untyingDUR" + cur_clus_it)).text = "ok"
                     }
                 }
 
                 project.task("trainFullContext" + (local_cur_clus_it+1), dependsOn:["untyingCMP" + local_cur_clus_it, "untyingDUR" + local_cur_clus_it]) {
 
-                    outputs.files project.cmp_model_dir + "/fullcontext.mmf"  + "." + (local_cur_clus_it + 1) + ".embedded.gz", project.dur_model_dir + "/fullcontext.mmf"  + "." + (local_cur_clus_it+1) + ".embedded.gz"
+                    inputs.files "$project.buildDir/achievedstages/untyingCMP" + local_cur_clus_it, "$project.buildDir/achievedstages/untyingDUR" + local_cur_clus_it
+                    outputs.files "$project.buildDir/achievedstages/trainFullContext" + (local_cur_clus_it+1)
+
                     doLast {
 
                         for (i in 1..project.user_configuration.settings.training.nIte) {
@@ -458,19 +418,9 @@ class ContextStages
                                                        ["-C", project.non_variance_config_filename,
                                                         "-s", project.cmp_model_dir + "/stats." + (local_cur_clus_it+1),
                                                         "-w", 0.0])
+
+                            (new File("$project.buildDir/achievedstages/trainFullContext" + (local_cur_clus_it+1))).text = "ok"
                         }
-
-                        // exec {
-                        //     def bash_cmd = ["gzip", "-c", project.cmp_model_dir + "/fullcontext.mmf." + (local_cur_clus_it+1), ">",
-                        //                     project.cmp_model_dir + "/fullcontext.mmf"  + "." + (local_cur_clus_it+1) +".embedded.gz"]
-                        //     commandLine("bash", "-c", bash_cmd.join(" "))
-                        // }
-
-                        // exec {
-                        //     def bash_cmd = ["gzip", "-c", project.dur_model_dir + "/fullcontext.mmf." + (local_cur_clus_it+1), ">",
-                        //                     project.dur_model_dir + "/fullcontext.mmf"  + "." + (local_cur_clus_it+1) +".embedded.gz"]
-                        //     commandLine("bash", "-c", bash_cmd.join(" "))
-                        // }
                     }
                 }
             }

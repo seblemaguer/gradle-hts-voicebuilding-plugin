@@ -310,6 +310,7 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
 
         project.task('exportRAW', dependsOn: 'exportPreparation')
         {
+            outputs.files project.fileTree("$project.export_dir")
             doLast {
                 Raw.export(project)
             }
@@ -319,8 +320,7 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
         /******************************
          ** MaryTTS
          ******************************/
-        project.task('prepareMary') { //, dependsOn: 'exportPreparation') {
-            outputs.upToDateWhen { false }
+        project.task('prepareMary') {
             def serviceLoaderFile = project.file("$project.maryttsResourcesDir/META-INF/services/marytts.config.MaryConfig")
 
             // FIXME: Inputs & Outputs

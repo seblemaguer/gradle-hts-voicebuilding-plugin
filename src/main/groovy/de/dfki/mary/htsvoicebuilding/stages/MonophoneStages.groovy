@@ -29,6 +29,8 @@ class MonophoneStages {
     {
         project.task('initialiseMonophoneModels', dependsOn: 'initModels')
         {
+            outputs.files "$project.buildDir/achievedstages/initialiseMonophoneModels"
+
             // FIXME: use the list !
             def monophone_set = new HashSet()
             (new File(DataFileFinder.getFilePath(project.user_configuration.data.list_files))).eachLine{ cur_file ->
@@ -89,11 +91,16 @@ class MonophoneStages {
                         }
                     }
                 }
+
+                (new File("$project.buildDir/achievedstages/")).mkdirs()
+                (new File("$project.buildDir/achievedstages/initialiseMonophoneModels")).text = "ok"
             }
         }
 
         project.task('generateMonophoneMMF', dependsOn: 'initialiseMonophoneModels')
         {
+            inputs.files "$project.buildDir/achievedstages/initialiseMonophoneModels"
+            outputs.files "$project.buildDir/achievedstages/generateMonophoneMMF"
 
             // FIXME: use the list !
             def monophone_set = new HashSet()
@@ -110,8 +117,6 @@ class MonophoneStages {
             monophone_set.each { phone ->
                 inputs.files "$project.cmp_model_dir/HInit/$phone", "$project.cmp_model_dir/HRest/$phone"
             }
-
-            outputs.files project.cmp_model_dir + "/monophone.mmf.noembedded.gz", project.dur_model_dir + "/monophone.mmf.noembedded.gz", project.cmp_model_dir + "/monophone.mmf",project.cmp_model_dir + "/monophone.mmf"
 
             // Generate HHEd script
             project.copy {
@@ -145,28 +150,15 @@ class MonophoneStages {
                 project.hts_wrapper.HHEdOnDir(project.hhed_script_dir + "/lvf.dur.hed", project.mono_list_filename,
                                               project.dur_model_dir + "/HRest", project.dur_model_dir + "/monophone.mmf")
 
-                // // Save a gzip copy
-                // exec {
-                //     def bash_cmd = ["gzip", "-c", project.cmpModelDirectory + "/monophone.mmf", ">", project.cmpModelDirectory + "/monophone.mmf.noembedded.gz"]
-                //     commandLine("bash", "-c", bash_cmd.join(" "))
-                // }
 
-                // // Save a gzip copy
-                // exec {
-                //     def bash_cmd = ["gzip", "-c", project.durModelDirectory + "/monophone.mmf", ">", project.durModelDirectory + "/monophone.mmf.noembedded.gz"]
-                //     commandLine("bash", "-c", bash_cmd.join(" "))
-                // }
+                (new File("$project.buildDir/achievedstages/generateMonophoneMMF")).text = "ok"
             }
         }
 
         project.task('trainMonophoneMMF', dependsOn: 'generateMonophoneMMF')
         {
-            // outputs.upToDateWhen {
-            //     false
-            // }
-
-            // FIXME: inputs
-            outputs.files project.cmp_model_dir + "/monophone.mmf.embedded.gz", project.dur_model_dir + "/monophone.mmf.embedded.gz", project.cmp_model_dir + "/monophone.mmf",project.cmp_model_dir + "/monophone.mmf"
+            inputs.files "$project.buildDir/achievedstages/generateMonophoneMMF"
+            outputs.files "$project.buildDir/achievedstages/trainMonophoneMMF"
 
             doLast {
                 if (project.user_configuration.settings.daem.use) {
@@ -204,18 +196,8 @@ class MonophoneStages {
                     }
                 }
 
-                /*
-                  exec {
-                  def bash_cmd = ["gzip", "-c", project.cmpModelDirectory + "/monophone.mmf", ">", project.cmpModelDirectory + "/monophone.mmf.embedded.gz"]
-                  commandLine("bash", "-c", bash_cmd.join(" "))
-                  }
 
-
-                  exec {
-                  def bash_cmd = ["gzip", "-c", project.durModelDirectory + "/monophone.mmf", ">", project.durModelDirectory + "/monophone.mmf.embedded.gz"]
-                  commandLine("bash", "-c", bash_cmd.join(" "))
-                  }
-                */
+                (new File("$project.buildDir/achievedstages/trainMonophoneMMF")).text = "ok"
             }
         }
     }
