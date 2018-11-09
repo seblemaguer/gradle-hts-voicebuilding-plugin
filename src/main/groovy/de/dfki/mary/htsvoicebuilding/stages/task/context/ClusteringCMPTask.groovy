@@ -80,7 +80,7 @@ public class ClusteringCMPTask extends DefaultTask {
     final RegularFileProperty stats_cmp_file = newInputFile();
 
     /** The original input model file */
-    @InputFile
+    @Internal
     final RegularFileProperty transitive_model_file = newInputFile();
 
     /** The output tree files */
