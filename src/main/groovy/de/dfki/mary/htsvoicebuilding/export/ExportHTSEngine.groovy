@@ -80,6 +80,47 @@ class ExportHTSEngine {
         }
 
 
+        project.task("convertGVToHTSEngine", type: ConvertGVToHTSEngineTask) {
+            description "Convert the CMP set to HTS Engine voice compatible format"
+
+            // Inputs
+            script_template_file = project.file("${project.configurationVoiceBuilding.template_dir}/cv_hts_engine.hed");
+            list_file = project.generateGVListFile.list_file
+
+            // FIXME: find a more direct part for the trees!
+            def m_files = []
+            project.configuration.user_configuration.models.cmp.streams.each { stream ->
+                def f = project.file("${project.configurationVoiceBuilding.gv_dir}/${stream.name}.inf")
+                m_files.add(f)
+            }
+            input_tree_files.setFrom(m_files)
+
+            input_model_file = project.file("${project.configurationVoiceBuilding.gv_dir}/trained/clustered.mmf") // project.property("trainGVClustered").trained_model_file
+
+            // Outputs
+            m_files = []
+            project.configuration.user_configuration.models.cmp.streams.each { stream ->
+                def f = project.file("${project.configurationVoiceBuilding.hhed_script_dir}/cv_hts_engine_gv_${stream.kind}.hed")
+                m_files.add(f)
+            }
+            script_files.setFrom(m_files)
+
+            m_files = []
+            project.configuration.user_configuration.models.cmp.streams.each { stream ->
+                def f = project.file("${export_dir}/gv_${stream.kind}.inf")
+                m_files.add(f)
+            }
+            output_tree_files.setFrom(m_files)
+
+
+            m_files = []
+            project.configuration.user_configuration.models.cmp.streams.each { stream ->
+                def f = project.file("${export_dir}/gv_${stream.kind}.pdf")
+                m_files.add(f)
+            }
+            output_model_files.setFrom(m_files)
+        }
+
         project.task("exportHTSEnginePosition", type: ExportHTSEnginePositionTask) {
             // Duration dependency !
             dur_pdf   = project.property("convertDURToHTSEngine").output_model_file
