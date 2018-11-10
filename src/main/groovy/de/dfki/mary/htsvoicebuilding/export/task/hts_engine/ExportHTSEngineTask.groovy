@@ -179,7 +179,6 @@ class ExportHTSEngineWorker implements Runnable {
         for (int i=0; i<nb_streams; i++) {
             File tree_file = it_tree.next()
 
-
             buf = Files.readAllBytes(tree_file.toPath());
             fos.write(buf);
         }

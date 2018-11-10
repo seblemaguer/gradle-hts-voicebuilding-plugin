@@ -134,11 +134,7 @@ public class ConvertGVToHTSEngineTask extends DefaultTask {
                 });
 
             // Next stream start
-            if (stream.is_msd) {
-                start_stream += stream.winfiles.size()
-            } else {
-                start_stream += 1
-            }
+            start_stream += 1
         }
     }
 }
