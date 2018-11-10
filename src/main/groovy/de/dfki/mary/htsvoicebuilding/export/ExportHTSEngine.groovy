@@ -95,7 +95,7 @@ class ExportHTSEngine {
             }
             input_tree_files.setFrom(m_files)
 
-            input_model_file = project.file("${project.configurationVoiceBuilding.gv_dir}/trained/clustered.mmf") // project.property("trainGVClustered").trained_model_file
+            input_model_file = project.property("trainGVClustered").trained_model_file
 
             // Outputs
             m_files = []

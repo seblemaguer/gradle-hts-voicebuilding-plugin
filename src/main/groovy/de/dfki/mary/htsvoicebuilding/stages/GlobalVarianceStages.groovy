@@ -183,26 +183,6 @@ class GlobalVarianceStages
             fullcontext_model_file = project.trainGVFullcontext.trained_model_file
 
             // Outputs
-            def m_files = []
-            project.configuration.user_configuration.models.cmp.streams.each { stream ->
-                def f = project.file("$project.configurationVoiceBuilding.gv_dir/init/clustered.mmf.${stream.name}")
-                m_files.add(f)
-            }
-            clustered_model_files.setFrom(m_files)
-        }
-
-        project.task("joinClusteredGV", type: JoinClusteredGVTask) {
-            description "Join the independently trained global variance clustered files"
-
-            // FIXME: why do I nee this?
-            dependsOn "clusteringGV"
-
-            // Inputs
-            list_file = project.generateGVListFile.list_file
-            script_file = project.file("${project.configurationVoiceBuilding.hhed_script_dir}/join.gv.hed")
-            clustered_cmp_files = project.property("clusteringGV").clustered_model_files
-
-            // outputs
             clustered_model_file = project.file("$project.configurationVoiceBuilding.gv_dir/init/clustered.mmf")
         }
 
@@ -213,7 +193,7 @@ class GlobalVarianceStages
             scp_file = project.generateGVSCPFile.scp_file
             list_file = project.generateGVListFile.list_file
             mlf_file = project.generateGVMLFFile.mlf_file
-            init_model_file = project.joinClusteredGV.clustered_model_file
+            init_model_file = project.clusteringGV.clustered_model_file
 
             // Outputs
             stats_file = project.file("${project.configurationVoiceBuilding.gv_dir}/stats_clustered")

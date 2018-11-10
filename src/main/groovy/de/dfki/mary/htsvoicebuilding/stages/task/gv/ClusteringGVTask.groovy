@@ -1,5 +1,15 @@
 package de.dfki.mary.htsvoicebuilding.stages.task.gv
 
+// For copying
+import java.nio.file.StandardCopyOption;
+import java.nio.file.Files;
+
+// Template import
+import groovy.text.*;
+
+// HTS Wrapper import
+import de.dfki.mary.htsvoicebuilding.HTSWrapper;
+
 // Inject
 import javax.inject.Inject;
 
@@ -46,9 +56,9 @@ public class ClusteringGVTask extends DefaultTask {
     @InputFile
     final RegularFileProperty fullcontext_model_file = newInputFile();
 
-    /** The output clustered files */
-    @OutputFiles
-    ConfigurableFileCollection clustered_model_files = project.files();
+    /** The output clustered file */
+    @OutputFile
+    final RegularFileProperty clustered_model_file = newOutputFile();
 
     /**
      *  The constructor which defines which worker executor is going to achieve the conversion job
@@ -67,85 +77,26 @@ public class ClusteringGVTask extends DefaultTask {
      */
     @TaskAction
     public void cluster() {
-
-        def clustered_model_files_set = clustered_model_files.getFiles();
-        def project_cur_stream = 1
-
-        // Prepare parallelism part !
-        def streams = []
-        project.configuration.user_configuration.models.cmp.streams.each { stream ->
-            // FIXME: Define indexes
-            stream.start = project_cur_stream
-            stream.end   = project_cur_stream
-            if (stream.is_msd) {
-                stream.end += stream.winfiles.size() - 1
-            }
-
-            project_cur_stream = stream.end + 1
-            streams << stream
-        }
-
-        int s = 1
-        for (def stream: streams) {
-
-            def streamname = stream.name
-
-            //   2. generate HHEd scripts (FIXME: output file)
-            def questions = question_file.getAsFile().get().text
-            def streamline = "TB " + stream.gv.thr + " gv_" + stream.name +  "_ {*.state[2].stream[$s]}\n"
-            def tree_file = new File("${project.configurationVoiceBuilding.gv_dir}/${stream.name}.inf")
-            def binding = [
-                GAM : stream.gv.gam,
-                STATSFILE: stats_file.getAsFile().get().toString(),
-                QUESTIONS: questions,
-                STREAMLINE: streamline,
-                OUTPUT: tree_file.toString()
-            ]
-
-            File script_file = new File("${project.configurationVoiceBuilding.hhed_script_dir}/cxc_${stream.name}.gv.hed")
-            project.copy {
-                from script_template_file.getAsFile().get()
-                into script_file.getParent()
-                rename {file -> script_file.getName()}
-                expand(binding)
-            }
-
-
-            //   3. build the decision tree
-            def params = []
-            if (stream.thr == 0) {
-                params += ["-m", "-a", stream.gv.mdlf]
-            }
-
-            // Get cluster model file
-            File clustered_model_file = null;
-            for (File cur_file: clustered_model_files_set) {
-                if (cur_file.getName().endsWith("${stream.name}")) {
-                    clustered_model_file = cur_file;
-                    break;
+        // Submit the execution
+        workerExecutor.submit(ClusteringGVWorker.class,
+                              new Action<WorkerConfiguration>() {
+                @Override
+                public void execute(WorkerConfiguration config) {
+                    config.setIsolationMode(IsolationMode.NONE);
+                    config.params(
+                        script_template_file.getAsFile().get(),
+                        question_file.getAsFile().get(),
+                        list_file.getAsFile().get(),
+                        stats_file.getAsFile().get(),
+                        fullcontext_model_file.getAsFile().get(),
+                        clustered_model_file.getAsFile().get(),
+                        project.configurationVoiceBuilding.gv_dir,
+                        project.configurationVoiceBuilding.hhed_script_dir,
+                        project.configurationVoiceBuilding.hts_wrapper,
+                        project.configuration.user_configuration
+                    );
                 }
-            }
-
-            // Submit the execution
-            workerExecutor.submit(ClusteringGVWorker.class,
-                                  new Action<WorkerConfiguration>() {
-                    @Override
-                    public void execute(WorkerConfiguration config) {
-                        config.setIsolationMode(IsolationMode.NONE);
-                        config.params(
-                            script_file,
-                            list_file.getAsFile().get(),
-                            fullcontext_model_file.getAsFile().get(),
-                            clustered_model_file,
-                            project.configurationVoiceBuilding.hts_wrapper,
-                            params
-                        );
-                    }
-                });
-
-            // Next stream
-            s += 1
-        }
+            });
     }
 }
 
@@ -156,11 +107,17 @@ public class ClusteringGVTask extends DefaultTask {
 class ClusteringGVWorker implements Runnable {
 
 
-    /** The clustering script file */
-    private File script_file;
+    /** The clustering template script file */
+    private File script_template_file;
+
+    /** The input question file */
+    private File question_file;
 
     /** The list of label file */
     private File list_file;
+
+    /** The input statistics file */
+    private File stats_file;
 
     /** The input full context model file */
     private File fullcontext_model_file;
@@ -168,26 +125,36 @@ class ClusteringGVWorker implements Runnable {
     /** The produced cluster model file */
     private File clustered_model_file;
 
+    private File gv_dir;
+
+    private File hhed_script_dir;
+
     /** The HTS wrapper helper object */
     private HTSWrapper hts_wrapper;
 
     /** Some parameters */
-    private ArrayList<String> params;
+    private Object configuration;
 
     /**
      *  The contructor which initialize the worker
      *
      */
     @Inject
-    public ClusteringGVWorker(File script_file, File list_file,
+    public ClusteringGVWorker(File script_template_file, File question_file,
+                              File list_file, File stats_file,
                               File fullcontext_model_file, File clustered_model_file,
-                              HTSWrapper hts_wrapper, ArrayList<String> params) {
-        this.script_file = script_file;
+                              File gv_dir, File hhed_script_dir,
+                              HTSWrapper hts_wrapper, Object configuration) {
+        this.script_template_file = script_template_file;
+        this.question_file = question_file;
         this.list_file = list_file;
+        this.stats_file = stats_file;
         this.fullcontext_model_file = fullcontext_model_file;
         this.clustered_model_file = clustered_model_file;
+        this.gv_dir = gv_dir
+        this.hhed_script_dir = hhed_script_dir
         this.hts_wrapper = hts_wrapper;
-        this.params = params;
+        this.configuration = configuration;
     }
 
     /**
@@ -197,10 +164,44 @@ class ClusteringGVWorker implements Runnable {
     @Override
     public void run() {
 
-        hts_wrapper.HHEdOnMMF(script_file.toString(),
-                              list_file.toString(),
-                              fullcontext_model_file.toString(),
-                              clustered_model_file.toString(),
-                              params)
+        // 1. copy
+        Files.copy(fullcontext_model_file.toPath(), clustered_model_file.toPath(),
+                   StandardCopyOption.REPLACE_EXISTING);
+
+        // Prepare parallelism part !
+        int stream_id = 1;
+        for (def stream: configuration.models.cmp.streams) {
+
+            // 1. generate HHEd scripts (FIXME: output file)
+            def questions = question_file.text
+            def streamline = "TB " + stream.gv.thr + " gv_" + stream.name +  "_ {*.state[2].stream[${stream_id}]}\n"
+            def tree_file = new File("$gv_dir/${stream.name}.inf")
+            def binding = [
+                GAM : stream.gv.gam,
+                STATSFILE: stats_file.toString(),
+                QUESTIONS: questions,
+                STREAMLINE: streamline,
+                OUTPUT: tree_file.toString()
+            ]
+
+            def simple = new SimpleTemplateEngine()
+            def source = script_template_file.text
+            File script_file = new File("$hhed_script_dir/cxc_${stream.name}_gv.hed")
+            script_file.text = simple.createTemplate(source).make(binding).toString()
+
+            // 2. build the decision tree
+            def params = []
+            if (stream.gv.thr == "000") {
+                params += ["-m", "-a", stream.gv.mdlf]
+            }
+
+            hts_wrapper.HHEdOnMMF(script_file.toString(),
+                                  list_file.toString(),
+                                  clustered_model_file.toString(),
+                                  clustered_model_file.toString(),
+                                  params)
+
+            stream_id++;
+        }
     }
 }
