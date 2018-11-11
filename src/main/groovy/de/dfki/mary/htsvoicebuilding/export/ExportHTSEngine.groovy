@@ -112,7 +112,6 @@ class ExportHTSEngine {
             }
             output_tree_files.setFrom(m_files)
 
-
             m_files = []
             project.configuration.user_configuration.models.cmp.streams.each { stream ->
                 def f = project.file("${export_dir}/gv_${stream.kind}.pdf")
@@ -126,10 +125,17 @@ class ExportHTSEngine {
             dur_pdf   = project.property("convertDURToHTSEngine").output_model_file
             dur_tree  = project.property("convertDURToHTSEngine").output_tree_file
 
-            // FIXME: why this dependency is needed !
+            // CMP depndency (FIXME: why dependsOn needed !)
             dependsOn "convertCMPToHTSEngine"
             cmp_pdfs  = project.property("convertCMPToHTSEngine").output_model_files
             cmp_trees = project.property("convertCMPToHTSEngine").output_tree_files
+
+            // GV dependencies (if needed)
+            if (project.configuration.user_configuration.gv.use) {
+                dependsOn "convertGVToHTSEngine"
+                gv_pdfs  = project.property("convertGVToHTSEngine").output_model_files
+                gv_trees = project.property("convertGVToHTSEngine").output_tree_files
+            }
 
             // Produced dependency file
             position_file = project.file("${export_dir}/position.cfg")
@@ -146,6 +152,12 @@ class ExportHTSEngine {
             // CMP Dependencies
             cmp_pdfs  = project.property("convertCMPToHTSEngine").output_model_files
             cmp_trees = project.property("convertCMPToHTSEngine").output_tree_files
+
+            // GV dependencies (if needed)
+            if (project.configuration.user_configuration.gv.use) {
+                gv_pdfs  = project.property("convertGVToHTSEngine").output_model_files
+                gv_trees = project.property("convertGVToHTSEngine").output_tree_files
+            }
 
             // Final voice file
             voice_file = project.file("${export_dir}/voice.hts_voice")

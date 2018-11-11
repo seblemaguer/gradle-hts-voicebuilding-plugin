@@ -35,6 +35,14 @@ public class ExportHTSEnginePositionTask extends DefaultTask {
     @InputFiles
     ConfigurableFileCollection cmp_trees = project.files()
 
+    @InputFiles
+    @Optional
+    ConfigurableFileCollection gv_pdfs = project.files()
+
+    @InputFiles
+    @Optional
+    ConfigurableFileCollection gv_trees = project.files()
+
     @OutputFile
     final RegularFileProperty position_file = newOutputFile()
 
@@ -66,6 +74,8 @@ public class ExportHTSEnginePositionTask extends DefaultTask {
                         dur_tree.getAsFile().get(),
                         cmp_pdfs.getFiles(),
                         cmp_trees.getFiles(),
+                        gv_pdfs?.getFiles(),
+                        gv_trees?.getFiles(),
                         position_file.getAsFile().get(),
                         project.configuration.user_configuration
                     );
@@ -91,6 +101,10 @@ class ExportHTSEnginePositionWorker implements Runnable {
 
     private Set<File> cmp_trees;
 
+    private Set<File> gv_pdfs;
+
+    private Set<File> gv_trees;
+
     private File position_file;
 
     /**
@@ -100,12 +114,15 @@ class ExportHTSEnginePositionWorker implements Runnable {
     @Inject
     public ExportHTSEnginePositionWorker(File dur_pdf, File dur_tree,
                                          Set<File> cmp_pdfs, Set<File> cmp_trees,
+                                         Set<File> gv_pdfs, Set<File> gv_trees,
                                          File position_file, Object configuration) {
 
         this.dur_pdf = dur_pdf
         this.dur_tree = dur_tree
         this.cmp_pdfs = cmp_pdfs
         this.cmp_trees = cmp_trees
+        this.gv_pdfs = gv_pdfs
+        this.gv_trees = gv_trees
         this.position_file = position_file
         this.configuration = configuration;
     }
@@ -162,7 +179,29 @@ class ExportHTSEnginePositionWorker implements Runnable {
             f_index += tree.length()
         }
 
-        // TODO: GV part
+        // GV PDF part
+        if (configuration.gv.use) {
+            it_pdf  = gv_pdfs.iterator()
+            for (int i=0; i<nb_streams; i++) {
+                Object stream = configuration.models.cmp.streams[i]
+                File pdf = it_pdf.next()
+
+                position_content += "GV_PDF[${stream.name}]:${f_index}-${f_index + pdf.length() - 1}\n"
+                f_index += pdf.length()
+            }
+        }
+
+        // GV tree part
+        if (configuration.gv.use) {
+            it_tree = gv_trees.iterator()
+            for (int i=0; i<nb_streams; i++) {
+                Object stream = configuration.models.cmp.streams[i]
+                File tree = it_tree.next()
+
+                position_content += "GV_TREE[${stream.name}]:${f_index}-${f_index + tree.length() - 1}\n"
+                f_index += tree.length()
+            }
+        }
 
         // Prepare for the data
         position_content += "[DATA]\n"

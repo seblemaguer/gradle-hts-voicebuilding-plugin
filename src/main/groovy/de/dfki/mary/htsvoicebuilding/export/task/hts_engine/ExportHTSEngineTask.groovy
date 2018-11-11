@@ -38,6 +38,14 @@ public class ExportHTSEngineTask extends DefaultTask {
     @InputFiles
     ConfigurableFileCollection cmp_trees = project.files()
 
+    @InputFiles
+    @Optional
+    ConfigurableFileCollection gv_pdfs = project.files()
+
+    @InputFiles
+    @Optional
+    ConfigurableFileCollection gv_trees = project.files()
+
     @InputFile
     final RegularFileProperty header_file = newInputFile()
 
@@ -75,6 +83,8 @@ public class ExportHTSEngineTask extends DefaultTask {
                         dur_tree.getAsFile().get(),
                         cmp_pdfs.getFiles(),
                         cmp_trees.getFiles(),
+                        gv_pdfs?.getFiles(),
+                        gv_trees?.getFiles(),
                         header_file.getAsFile().get(),
                         position_file.getAsFile().get(),
                         voice_file.getAsFile().get(),
@@ -102,6 +112,10 @@ class ExportHTSEngineWorker implements Runnable {
 
     private Set<File> cmp_trees;
 
+    private Set<File> gv_pdfs;
+
+    private Set<File> gv_trees;
+
     private File header_file;
 
     private File position_file;
@@ -115,6 +129,7 @@ class ExportHTSEngineWorker implements Runnable {
     @Inject
     public ExportHTSEngineWorker(File dur_pdf, File dur_tree,
                                          Set<File> cmp_pdfs, Set<File> cmp_trees,
+                                         Set<File> gv_pdfs, Set<File> gv_trees,
                                          File header_file, File position_file,
                                          File voice_file, Object configuration) {
 
@@ -122,6 +137,8 @@ class ExportHTSEngineWorker implements Runnable {
         this.dur_tree = dur_tree
         this.cmp_pdfs = cmp_pdfs
         this.cmp_trees = cmp_trees
+        this.gv_pdfs = gv_pdfs
+        this.gv_trees = gv_trees
         this.header_file = header_file
         this.position_file = position_file
         this.voice_file = voice_file
@@ -181,6 +198,28 @@ class ExportHTSEngineWorker implements Runnable {
 
             buf = Files.readAllBytes(tree_file.toPath());
             fos.write(buf);
+        }
+
+        //  = GV PDF part
+        if (configuration.gv.use) {
+            it_pdf  = gv_pdfs.iterator()
+            for (int i=0; i<nb_streams; i++) {
+                File pdf_file = it_pdf.next()
+
+                buf = Files.readAllBytes(pdf_file.toPath());
+                fos.write(buf);
+            }
+        }
+
+        //  = GV PDF part
+        if (configuration.gv.use) {
+            it_tree  = gv_trees.iterator()
+            for (int i=0; i<nb_streams; i++) {
+                File tree_file = it_tree.next()
+
+                buf = Files.readAllBytes(tree_file.toPath());
+                fos.write(buf);
+            }
         }
 
         fos.close();

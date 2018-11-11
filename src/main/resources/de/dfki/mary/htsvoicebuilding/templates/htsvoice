@@ -45,7 +45,7 @@ COMMENT:
     def v_use_gv = []
     configuration.models.cmp.streams.each { stream ->
         if (configuration.gv.use) {
-            v_use_gv.add("USE_GV[${stream.name}]:0") // FIXME: for now false !
+            v_use_gv.add("USE_GV[${stream.name}]:1")
         } else {
             v_use_gv.add("USE_GV[${stream.name}]:0")
         }
