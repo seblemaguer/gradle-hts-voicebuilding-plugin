@@ -56,7 +56,7 @@ public class GenerateDURTreeConversionScriptTask extends DefaultTask {
                         new File(project.tree_dir), // FIXME: externalize
                         new File("$project.list_dir/tiedlist_dur"), // FIXME: externalize
                         script_file.getAsFile().get(),
-                        project.configuration.user_configuration
+                        project.vb_configuration
                     );
                 }
             });

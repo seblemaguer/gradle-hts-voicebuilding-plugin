@@ -98,8 +98,8 @@ public class JoinClusteredCMPTask extends DefaultTask {
                         clustered_model_file.getAsFile().get(),
                         output_flag.getAsFile().get(),
                         stream_start, stream_end,
-                        project.configurationVoiceBuilding.hts_wrapper,
-                        project.configuration.user_configuration
+                        project.hts_wrapper,
+                        project.vb_configuration
                     );
                 }
             });

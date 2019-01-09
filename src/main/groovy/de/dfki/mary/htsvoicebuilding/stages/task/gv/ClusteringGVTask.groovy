@@ -90,10 +90,10 @@ public class ClusteringGVTask extends DefaultTask {
                         stats_file.getAsFile().get(),
                         fullcontext_model_file.getAsFile().get(),
                         clustered_model_file.getAsFile().get(),
-                        project.configurationVoiceBuilding.gv_dir,
-                        project.configurationVoiceBuilding.hhed_script_dir,
-                        project.configurationVoiceBuilding.hts_wrapper,
-                        project.configuration.user_configuration
+                        project.gv_dir,
+                        project.hhed_script_dir,
+                        project.hts_wrapper,
+                        project.vb_configuration
                     );
                 }
             });

@@ -101,8 +101,8 @@ public class ClusteringDURTask extends DefaultTask {
                         stats_dur_file.getAsFile().get(),
                         script_file.getAsFile().get(),
                         clustered_model_file.getAsFile().get(),
-                        project.configurationVoiceBuilding.hts_wrapper,
-                        project.configuration.user_configuration
+                        project.hts_wrapper,
+                        project.vb_configuration
                     );
                 }
             });

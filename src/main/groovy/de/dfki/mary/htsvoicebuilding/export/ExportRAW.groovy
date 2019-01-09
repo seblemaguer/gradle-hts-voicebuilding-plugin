@@ -20,7 +20,7 @@ import org.gradle.api.tasks.bundling.Zip
 
 class ExportRAW {
     public static void addTasks(Project project) {
-        def last_cluster = project.configuration.user_configuration.settings.training.nb_clustering - 1
+        def last_cluster = project.vb_configuration.settings.training.nb_clustering - 1
         def export_dir = new File("$project.buildDir/raw")
         export_dir.mkdirs()
 
@@ -32,16 +32,16 @@ class ExportRAW {
                 def tree_dir = new File("$export_dir/trees")
                 tree_dir.mkdirs()
 
-                project.configuration.user_configuration.models.cmp.streams.each { stream ->
+                project.vb_configuration.models.cmp.streams.each { stream ->
                     project.copy {
-                        from "${project.configurationVoiceBuilding.tree_dir}/${stream.name}.${last_cluster}.inf"
+                        from "${project.tree_dir}/${stream.name}.${last_cluster}.inf"
                         into tree_dir
                         rename { file -> "${stream.name}.inf"}
                     }
                 }
 
                 project.copy {
-                    from "${project.configurationVoiceBuilding.tree_dir}/dur.${last_cluster}.inf"
+                    from "${project.tree_dir}/dur.${last_cluster}.inf"
                     into tree_dir
                     rename { file -> "dur.inf"}
                 }
@@ -75,7 +75,7 @@ class ExportRAW {
 
             doLast {
                 project.copy {
-                    from project.configurationVoiceBuilding.full_list_filename
+                    from project.full_list_filename
                     into "$export_dir"
                     rename { file -> "full.list" }
                 }
@@ -90,9 +90,9 @@ class ExportRAW {
                 gv_dir.mkdirs()
 
                 // Trees
-                project.configuration.user_configuration.models.cmp.streams.each { stream ->
+                project.vb_configuration.models.cmp.streams.each { stream ->
                     project.copy {
-                        from "${project.configurationVoiceBuilding.gv_dir}/${stream.name}.inf"
+                        from "${project.gv_dir}/${stream.name}.inf"
                         into gv_dir
                         rename { file -> "${stream.name}.inf"}
                     }
@@ -118,7 +118,7 @@ class ExportRAW {
             doLast {
 
                 (new File("$export_dir/win")).mkdirs()
-                project.configuration.user_configuration.models.cmp.streams.each { stream ->
+                project.vb_configuration.models.cmp.streams.each { stream ->
                     stream.winfiles.each { win_file ->
                         project.copy {
                             from win_file
@@ -141,17 +141,16 @@ class ExportRAW {
                 FileUtils.copyDirectory(new File("$project.buildDir/dnn/var"),
                                         new File("$export_dir/DNN/var"));
 
-                Files.copy(Paths.get(project.configuration.user_configuration.settings.dnn.qconf),
+                Files.copy(Paths.get(project.vb_configuration.settings.dnn.qconf),
                            Paths.get("$export_dir/DNN/qconf.conf"));
             }
         }
 
 
         project.task("exportRAWConfiguration") {
-            dependsOn "configurationVoiceBuilding"
             doLast {
                 // Adapt configuration file and expose it
-                def export_configuration = project.configuration.user_configuration
+                def export_configuration = project.vb_configuration
                 export_configuration.remove("data")
 
                 export_configuration.models.cmp.streams.each { stream ->
@@ -175,12 +174,12 @@ class ExportRAW {
             dependsOn project.exportRAWLists
             dependsOn project.exportRAWConfiguration
 
-            if (project.configuration.user_configuration.gv.use) {
+            if (project.vb_configuration.gv.use) {
                 dependsOn project.exportRAWGV
             }
 
-            if ((project.configuration.user_configuration.settings.training.kind) &&
-                (project.configuration.user_configuration.settings.training.kind.equals("dnn")))  {
+            if ((project.vb_configuration.settings.training.kind) &&
+                (project.vb_configuration.settings.training.kind.equals("dnn")))  {
                 dependsOn project.exportRAWDNNModels
             }
         }

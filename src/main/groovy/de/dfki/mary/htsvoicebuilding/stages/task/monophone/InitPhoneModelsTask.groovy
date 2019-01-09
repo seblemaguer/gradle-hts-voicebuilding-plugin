@@ -104,7 +104,7 @@ public class InitPhoneModelsTask extends DefaultTask {
                                       cmp_hinit_dir.getAsFile().get(),
                                       cmp_hrest_dir.getAsFile().get(),
                                       dur_hrest_dir.getAsFile().get(),
-                                      project.configurationVoiceBuilding.hts_wrapper
+                                      project.hts_wrapper
                         );
                     }
                 });

@@ -77,7 +77,7 @@ public class ExportHTSEnginePositionTask extends DefaultTask {
                         gv_pdfs?.getFiles(),
                         gv_trees?.getFiles(),
                         position_file.getAsFile().get(),
-                        project.configuration.user_configuration
+                        project.vb_configuration
                     );
                 }
             });

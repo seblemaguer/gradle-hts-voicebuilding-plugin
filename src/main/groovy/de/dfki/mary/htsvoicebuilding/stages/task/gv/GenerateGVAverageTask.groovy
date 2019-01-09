@@ -69,7 +69,7 @@ public class GenerateGVAverageTask extends DefaultTask {
                         proto_file.getAsFile().get(),
                         average_file.getAsFile().get(),
                         vfloor_file.getAsFile().get(),
-                        project.configurationVoiceBuilding.hts_wrapper
+                        project.hts_wrapper
                     );
                 }
             });

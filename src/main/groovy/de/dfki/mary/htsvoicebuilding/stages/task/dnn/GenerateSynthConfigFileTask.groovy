@@ -59,7 +59,7 @@ public class GenerateSynthConfigFileTask extends DefaultTask {
                     config.params(
                         template_file.getAsFile().get(),
                         configuration_file.getAsFile().get(),
-                        project.configuration.user_configuration
+                        project.vb_configuration
                     );
                 }
             });

@@ -23,9 +23,9 @@ public class GenerateListTask extends DefaultTask {
     /** The worker */
     private final WorkerExecutor workerExecutor;
 
-    /** File containing list of basenames */
+    /** SCP File */
     @InputFile
-    final RegularFileProperty list_basenames = newInputFile()
+    final RegularFileProperty scp_file = newInputFile()
 
     /** Directory containing the labels */
     @InputDirectory
@@ -59,7 +59,7 @@ public class GenerateListTask extends DefaultTask {
                 @Override
                 public void execute(WorkerConfiguration config) {
                     config.setIsolationMode(IsolationMode.NONE);
-                    config.params(list_basenames.getAsFile().get(),
+                    config.params(scp_file.getAsFile().get(),
                                   lab_dir.getAsFile().get(),
                                   list_file.getAsFile().get());
                 }
@@ -73,8 +73,9 @@ public class GenerateListTask extends DefaultTask {
  *
  */
 class GenerateListWorker implements Runnable {
-    /** File containing list of basenames */
-    private File list_basenames_file;
+
+    /** SCP file */
+    private File scp_file;
 
     /** Directory containing the labels */
     private File lab_dir;
@@ -85,13 +86,13 @@ class GenerateListWorker implements Runnable {
     /**
      *  The constructor of the worker
      *
-     *  @param list_basenames_file file containing the basename list
+     *  @param scp_file file containing the basename list
      *  @param lab_dir the directory containing the labels
      *  @param list_file the List file generated
      */
     @Inject
-    public GenerateListWorker(File list_basenames_file, File lab_dir, File list_file) {
-        this.list_basenames_file = list_basenames_file;
+    public GenerateListWorker(File scp_file, File lab_dir, File list_file) {
+        this.scp_file = scp_file;
         this.lab_dir = lab_dir;
         this.list_file = list_file;
     }
@@ -105,8 +106,9 @@ class GenerateListWorker implements Runnable {
     public void run() {
         // Generate set of labels
         def model_set = new HashSet();
-        for (String basename: list_basenames_file.readLines()) {
-            (new File(lab_dir.toString(), basename + ".lab")).eachLine { line ->
+        for (String input_filename: scp_file.readLines()) {
+            String basename = (new File(input_filename)).getName() - ".cmp"
+            (new File(lab_dir.toString(),  basename + ".lab")).eachLine { line ->
                 def line_arr = line =~ /^[ \t]*([0-9]+)[ \t]+([0-9]+)[ \t]+(.+)/
                 if (line_arr.size() == 0) {
                     model_set.add(line)

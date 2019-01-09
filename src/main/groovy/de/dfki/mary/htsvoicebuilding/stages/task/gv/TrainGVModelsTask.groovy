@@ -91,7 +91,7 @@ public class TrainGVModelsTask extends DefaultTask {
                         init_model_file.getAsFile().get(),
                         trained_model_file.getAsFile().get(),
                         options,
-                        project.configurationVoiceBuilding.hts_wrapper
+                        project.hts_wrapper
                     );
                 }
             });

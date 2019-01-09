@@ -117,9 +117,9 @@ public class ClusteringCMPTask extends DefaultTask {
     @TaskAction
     public void cluster() {
 
-        for (i in 2..project.configuration.user_configuration.models.global.nb_emitting_states+1) {
+        for (i in 2..project.vb_configuration.models.global.nb_emitting_states+1) {
             // 0. Get/init some baseline files
-            File script_file = new File("${project.configurationVoiceBuilding.hhed_script_dir}/${local_cur_clus_it}/cxc_${stream_name}_${i}.hed")
+            File script_file = new File("${project.hhed_script_dir}/${local_cur_clus_it}/cxc_${stream_name}_${i}.hed")
             File tree_file = tree_file_list.get(i-2)
             File clustered_model_file = clustered_model_file_list.get(i-2);
 
@@ -173,7 +173,7 @@ public class ClusteringCMPTask extends DefaultTask {
                             list_file.getAsFile().get(),
                             transitive_model_file.getAsFile().get(),
                             clustered_model_file,
-                            project.configurationVoiceBuilding.hts_wrapper,
+                            project.hts_wrapper,
                             params
                         );
                     }

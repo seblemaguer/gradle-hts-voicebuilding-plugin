@@ -74,7 +74,7 @@ public class TreeConversionTask extends DefaultTask {
                         list_file.getAsFile().get(),
                         input_dur_model_file.getAsFile().get(),
                         output_dur_model_file.getAsFile().get(),
-                        project.configurationVoiceBuilding.hts_wrapper
+                        project.hts_wrapper
                     );
                 }
             });
@@ -91,7 +91,7 @@ public class TreeConversionTask extends DefaultTask {
                         list_file.getAsFile().get(),
                         input_cmp_model_file.getAsFile().get(),
                         output_cmp_model_file.getAsFile().get(),
-                        project.configurationVoiceBuilding.hts_wrapper
+                        project.hts_wrapper
                     );
                 }
             });

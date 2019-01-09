@@ -93,7 +93,7 @@ public class ConvertDURToHTSEngineTask extends DefaultTask {
                         script_file.getAsFile().get(),
                         output_tree_file.getAsFile().get(),
                         output_model_file.getAsFile().get(),
-                        project.configurationVoiceBuilding.hts_wrapper,
+                        project.hts_wrapper,
                     );
                 }
             });

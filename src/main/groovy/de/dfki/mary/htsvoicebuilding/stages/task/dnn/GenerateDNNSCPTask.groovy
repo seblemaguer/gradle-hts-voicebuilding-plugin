@@ -25,10 +25,6 @@ public class GenerateDNNSCPTask extends DefaultTask {
     /** The worker */
     private final WorkerExecutor workerExecutor;
 
-    /** The list of files to manipulate */
-    @InputFile
-    final RegularFileProperty list_file = newInputFile()
-
     /** The directory of observation data */
     @InputDirectory
     final DirectoryProperty ffo_dir = newInputDirectory()
@@ -65,7 +61,6 @@ public class GenerateDNNSCPTask extends DefaultTask {
                 public void execute(WorkerConfiguration config) {
                     config.setIsolationMode(IsolationMode.NONE);
                     config.params(
-                        list_file.getAsFile().get(),
                         ffi_dir.getAsFile().get(),
                         ffo_dir.getAsFile().get(),
                         scp_file.getAsFile().get()
@@ -81,8 +76,6 @@ public class GenerateDNNSCPTask extends DefaultTask {
  */
 class GenerateDNNSCPTaskWorker implements Runnable {
 
-    /** The list of files to manipulate */
-    private File list_file;
 
     /** The directory of observation data */
     private File ffo_dir;
@@ -98,8 +91,7 @@ class GenerateDNNSCPTaskWorker implements Runnable {
      *
      */
     @Inject
-    public GenerateDNNSCPTaskWorker(File list_file, File ffi_dir, File ffo_dir, File scp_file) {
-        this.list_file = list_file;
+    public GenerateDNNSCPTaskWorker(File ffi_dir, File ffo_dir, File scp_file) {
         this.ffo_dir = ffo_dir;
         this.ffi_dir = ffi_dir;
         this.scp_file = scp_file;
@@ -112,8 +104,14 @@ class GenerateDNNSCPTaskWorker implements Runnable {
     @Override
     public void run() {
         def output = ""
-        for (String basename: list_file.readLines()) {
-            output += "${ffi_dir}/${basename}.ffi ${ffo_dir}/${basename}.ffo\n"
+        ffi_dir.eachFile { ffi ->
+            String basename = ffi.getName() - ".ffi"
+            File ffo = new File("${ffo_dir}/${basename}.ffo")
+            if (ffo.exists()) {
+                output += "${ffi} ${ffo}\n"
+            } else {
+                println("${ffo} doesn't exist => excluded") // FIXME: logger error
+            }
         }
 
         scp_file.text = output

@@ -96,7 +96,7 @@ public class GenerateFullModelsTask extends DefaultTask {
                                   mono_list_file.getAsFile().get(),
                                   mono_model_cmp_file.getAsFile().get(),
                                   full_model_cmp_file.getAsFile().get(),
-                                  project.configurationVoiceBuilding.hts_wrapper
+                                  project.hts_wrapper
                     );
                 }
             });
@@ -111,7 +111,7 @@ public class GenerateFullModelsTask extends DefaultTask {
                                   mono_list_file.getAsFile().get(),
                                   mono_model_dur_file.getAsFile().get(),
                                   full_model_dur_file.getAsFile().get(),
-                                  project.configurationVoiceBuilding.hts_wrapper
+                                  project.hts_wrapper
                     );
                 }
             });

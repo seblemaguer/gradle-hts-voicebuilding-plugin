@@ -93,7 +93,7 @@ public class InitModelsTask extends DefaultTask {
                                   vfloor_cmp_file.getAsFile().get(),
                                   average_cmp_file.getAsFile().get(),
                                   init_cmp_file.getAsFile().get(),
-                                  project.configurationVoiceBuilding.hts_wrapper
+                                  project.hts_wrapper
                     );
                 }
             });
@@ -108,7 +108,7 @@ public class InitModelsTask extends DefaultTask {
                                   average_dur_template_file.getAsFile().get(),
                                   vfloor_dur_file.getAsFile().get(),
                                   average_dur_file.getAsFile().get(),
-                                  project.configuration.user_configuration);
+                                  project.vb_configuration);
                 }
             });
     }

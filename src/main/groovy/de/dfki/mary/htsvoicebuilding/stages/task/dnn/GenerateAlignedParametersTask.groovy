@@ -84,7 +84,7 @@ public class GenerateAlignedParametersTask extends DefaultTask {
                         cmp_model_file.getAsFile().get(),
                         dur_model_file.getAsFile().get(),
                         output_dir.getAsFile().get(),
-                        project.configurationVoiceBuilding.hts_wrapper
+                        project.hts_wrapper
                     );
                 }
             });

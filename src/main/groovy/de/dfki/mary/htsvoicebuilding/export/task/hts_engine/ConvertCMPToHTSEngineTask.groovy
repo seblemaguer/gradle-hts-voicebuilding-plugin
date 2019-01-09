@@ -79,7 +79,7 @@ public class ConvertCMPToHTSEngineTask extends DefaultTask {
         // Sort by filename
 
         def start_stream = 1;
-        for (def stream: project.configuration.user_configuration.models.cmp.streams) {
+        for (def stream: project.vb_configuration.models.cmp.streams) {
 
             // Get the script file
             File script_file = null;
@@ -132,7 +132,7 @@ public class ConvertCMPToHTSEngineTask extends DefaultTask {
                             script_file,
                             output_tree_file,
                             output_model_file,
-                            project.configurationVoiceBuilding.hts_wrapper,
+                            project.hts_wrapper,
                         );
                     }
                 });

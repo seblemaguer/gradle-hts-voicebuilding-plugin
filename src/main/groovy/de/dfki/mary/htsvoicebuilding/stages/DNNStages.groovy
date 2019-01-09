@@ -26,20 +26,19 @@ class DNNStages
             description "Generate the input linguistic vector features for DNN training"
 
             // Inputs
-            qconf_file = project.configurationVoiceBuilding.qconf
+            qconf_file = project.qconf
             state_aligned_directory = project.generateStateForceAlignment.aligned_directory
 
             // Outputs
-            ffi_dir = project.configurationVoiceBuilding.ffi_dir
+            ffi_dir = project.ffi_dir
         }
 
         project.task("generateDNNSCP", type: GenerateDNNSCPTask) {
             description "Generate the DNN scp list file"
 
             // Inputs
-            ffo_dir = project.configurationVoiceBuilding.ffo_dir;
+            ffo_dir = project.ffo_dir;
             ffi_dir = project.generateFeatures.ffi_dir;
-            list_file = project.file(project.configuration.user_configuration.data.list_files)
 
             // Outputs
             scp_file = project.file("${project.buildDir}/dnn/train_dnn.scp")
@@ -49,11 +48,11 @@ class DNNStages
             description "Generate the DNN configuration training file"
 
             // Inputs
-            qconf_file = project.configurationVoiceBuilding.qconf
-            template_file = project.file("${project.configurationVoiceBuilding.template_dir}/train_dnn.cfg")
+            qconf_file = project.qconf
+            template_file = project.file("${project.template_dir}/train_dnn.cfg")
 
             // Outputs
-            configuration_file = project.file("${project.configurationVoiceBuilding.config_dir}/train_dnn.cfg")
+            configuration_file = project.file("${project.config_dir}/train_dnn.cfg")
         }
 
         project.task("computeVar", type:ComputeVarTask) {
@@ -63,7 +62,7 @@ class DNNStages
             ffo_dir = project.generateDNNSCP.ffo_dir
 
             // Outputs
-            global_var_file = project.file("${project.configurationVoiceBuilding.var_dir}/global.var")
+            global_var_file = project.file("${project.var_dir}/global.var")
         }
 
         project.task("trainDNN", type:TrainDNNTask) {
@@ -75,7 +74,7 @@ class DNNStages
             configuration_file = project.generateDNNConfig.configuration_file
 
             // Outputs
-            model_dir = project.configurationVoiceBuilding.dnn_dir
+            model_dir = project.dnn_dir
         }
     }
 }

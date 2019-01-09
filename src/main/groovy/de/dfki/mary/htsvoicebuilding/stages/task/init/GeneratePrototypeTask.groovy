@@ -58,7 +58,7 @@ public class GeneratePrototypeTask extends DefaultTask {
                     config.setIsolationMode(IsolationMode.NONE);
                     config.params(template_file.getAsFile().get(),
                                   prototype_file.getAsFile().get(),
-                                  project.configuration.user_configuration);
+                                  project.vb_configuration);
                 }
             });
     }

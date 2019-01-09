@@ -62,7 +62,7 @@ public class ConvertDurToLabTask extends DefaultTask {
                         config.params(
                             new File(dur_dir.getAsFile().get().toString(), "${cur_file}.dur"),
                             new File(lab_dir.getAsFile().get().toString(), "${cur_file}.lab"),
-                            project.configuration.user_configuration.signal.frameshift
+                            project.vb_configuration.signal.frameshift
                         );
                     }
                 });

@@ -63,7 +63,7 @@ public class GenerateTrainingConfigFileTask extends DefaultTask {
                         template_file.getAsFile().get(),
                         qconf_file.getAsFile().get(),
                         configuration_file.getAsFile().get(),
-                        project.configuration.user_configuration
+                        project.vb_configuration
                     );
                 }
             });

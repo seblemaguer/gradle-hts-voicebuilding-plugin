@@ -71,8 +71,8 @@ public class UntyingCMPTask extends DefaultTask {
                         input_model_file.getAsFile().get(),
                         untying_script_file.getAsFile().get(),
                         output_model_file.getAsFile().get(),
-                        project.configurationVoiceBuilding.hts_wrapper,
-                        project.configuration.user_configuration
+                        project.hts_wrapper,
+                        project.vb_configuration
                     );
                 }
             });

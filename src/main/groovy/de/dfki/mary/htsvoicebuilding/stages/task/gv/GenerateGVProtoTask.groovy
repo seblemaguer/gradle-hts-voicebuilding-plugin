@@ -59,7 +59,7 @@ public class GenerateGVProtoTask extends DefaultTask {
                     config.params(
                         template_file.getAsFile().get(),
                         proto_file.getAsFile().get(),
-                        project.configuration.user_configuration
+                        project.vb_configuration
                     );
                 }
             });

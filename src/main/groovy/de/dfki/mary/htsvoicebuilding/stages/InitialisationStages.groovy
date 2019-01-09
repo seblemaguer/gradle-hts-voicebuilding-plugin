@@ -33,36 +33,38 @@ class InitialisationStages {
         project.task('generateSCPFile', type: GenerateSCPTask) {
             description "Generate the SCP file which contains the list of files used to train the models"
 
-            scp_file = project.configurationVoiceBuilding.train_scp
+            label_directory = project.file(project.vb_configuration.data.mono_lab_dir)
+            data_directory = project.file("${project.buildDir}/cmp") // FIXME: more general default path
+            scp_file = project.train_scp
         }
 
         project.task("generateMonoMLF", type: GenerateMLFTask) {
             description "Generate the Master Label File for Monophone training"
 
-            mlf_file = project.file(project.configurationVoiceBuilding.mono_mlf_filename)
-            lab_dir = project.file(project.configuration.user_configuration.data.mono_lab_dir)
+            mlf_file = project.file(project.mono_mlf_filename)
+            lab_dir = project.file(project.vb_configuration.data.mono_lab_dir)
         }
 
         project.task('generateMonophoneList', type: GenerateListTask) {
             description "Generate the list of monophone labels"
 
-            lab_dir = project.file(project.configuration.user_configuration.data.mono_lab_dir)
-            list_basenames = project.file(project.configuration.user_configuration.data.list_files)
-            list_file = project.file(project.configurationVoiceBuilding.mono_list_filename)
+            lab_dir = project.file(project.vb_configuration.data.mono_lab_dir)
+            scp_file = project.generateSCPFile.scp_file
+            list_file = project.file(project.mono_list_filename)
         }
 
         project.task('generatePrototype', type: GeneratePrototypeTask) {
             description "Generate the HMM prototype file"
 
-            template_file = project.file("${project.configurationVoiceBuilding.template_dir}/proto")
-            prototype_file = project.file("${project.configurationVoiceBuilding.proto_dir}/proto")
+            template_file = project.file("${project.template_dir}/proto")
+            prototype_file = project.file("${project.proto_dir}/proto")
         }
 
         project.task("generateTrainingConfigurationFile", type: GenerateTrainingConfigurationTask) {
             description "Generate the training configuration file"
 
-            template_file = project.file("${project.configurationVoiceBuilding.template_dir}/train.cfg")
-            configuration_file = project.file("${project.configurationVoiceBuilding.config_dir}/train.cfg")
+            template_file = project.file("${project.template_dir}/train.cfg")
+            configuration_file = project.file("${project.config_dir}/train.cfg")
         }
 
         project.task("generateNVCConfigurationFile") {
@@ -71,11 +73,11 @@ class InitialisationStages {
             doLast {
                 // nvf.cfg
                 project.copy {
-                    from project.configurationVoiceBuilding.template_dir
-                    into project.configurationVoiceBuilding.config_dir
+                    from project.template_dir
+                    into project.config_dir
 
                     include "nvf.cfg"
-                    rename { file -> project.configurationVoiceBuilding.non_variance_config_filename.name }
+                    rename { file -> project.non_variance_config_filename.name }
                 }
             }
         }
@@ -87,28 +89,28 @@ class InitialisationStages {
 
             // Fill values
             def m_files = []
-            project.configuration.user_configuration.models.cmp.streams.each { stream ->
-                def f = project.file("${project.configurationVoiceBuilding.config_dir}/${stream.name}.cfg")
+            project.vb_configuration.models.cmp.streams.each { stream ->
+                def f = project.file("${project.config_dir}/${stream.name}.cfg")
                 m_files.add(f)
                 mocc_values.put(f, stream.mocc);
             }
             mocc_files.setFrom(m_files)
 
             // FIXME: should be dependency
-            template_file = project.file("${project.configurationVoiceBuilding.template_dir}/mocc.cfg")
+            template_file = project.file("${project.template_dir}/mocc.cfg")
         }
 
         project.task("generateMOCCDURConfigurationFile", type:GenerateMOCCConfigurationFileTask) {
             description "Generate the MOCC configuration file for duration part"
 
-            def f = project.file("${project.configurationVoiceBuilding.config_dir}/dur.cfg")
+            def f = project.file("${project.config_dir}/dur.cfg")
             mocc_files.setFrom([f])
 
             // Generate value hash
-            mocc_values.put(f, project.configuration.user_configuration.models.dur.mocc);
+            mocc_values.put(f, project.vb_configuration.models.dur.mocc);
 
             // FIXME: should be dependency
-            template_file = project.file("${project.configurationVoiceBuilding.template_dir}/mocc.cfg")
+            template_file = project.file("${project.template_dir}/mocc.cfg")
         }
 
         project.task('initModels', type: InitModelsTask) {
@@ -119,21 +121,21 @@ class InitialisationStages {
             dependsOn "generateNVCConfigurationFile"
 
             // FIXME: should be dependency
-            vfloor_dur_template_file = project.file("$project.configurationVoiceBuilding.template_dir/vfloordur")
-            average_dur_template_file = project.file("$project.configurationVoiceBuilding.template_dir/average_dur.mmf")
+            vfloor_dur_template_file = project.file("$project.template_dir/vfloordur")
+            average_dur_template_file = project.file("$project.template_dir/average_dur.mmf")
 
             // Input prototype/scp
             scp_file = project.generateSCPFile.scp_file
             prototype_file = project.generatePrototype.prototype_file
 
             // CMP initialisation files
-            vfloor_cmp_file = project.file("${project.configurationVoiceBuilding.cmp_model_dir}/vFloors")
-            init_cmp_file = project.file("${project.configurationVoiceBuilding.cmp_model_dir}/init.mmf")
-            average_cmp_file = project.file("${project.configurationVoiceBuilding.cmp_model_dir}/average.mmf")
+            vfloor_cmp_file = project.file("${project.cmp_model_dir}/vFloors")
+            init_cmp_file = project.file("${project.cmp_model_dir}/init.mmf")
+            average_cmp_file = project.file("${project.cmp_model_dir}/average.mmf")
 
             // Duration initialisation files
-            vfloor_dur_file = project.file("${project.configurationVoiceBuilding.dur_model_dir}/vFloors")
-            average_dur_file = project.file("${project.configurationVoiceBuilding.dur_model_dir}/average.mmf")
+            vfloor_dur_file = project.file("${project.dur_model_dir}/vFloors")
+            average_dur_file = project.file("${project.dur_model_dir}/average.mmf")
         }
     }
 }

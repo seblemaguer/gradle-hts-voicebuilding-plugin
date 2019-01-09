@@ -88,7 +88,7 @@ public class GenerateMonophoneModelTask extends DefaultTask {
     public void generate() {
         // For CMP check if we need to tie
         boolean tie_needed = false;
-        for (def stream: project.configuration.user_configuration.models.cmp.streams) {
+        for (def stream: project.vb_configuration.models.cmp.streams) {
             if (stream.weight != 1.0) {
                 tie_needed = true;
                 break;
@@ -107,10 +107,10 @@ public class GenerateMonophoneModelTask extends DefaultTask {
                                   cmp_hrest_dir.getAsFile().get(),
                                   script_cmp_file.getAsFile().get(),
                                   cmp_mmf_file.getAsFile().get(),
-                                  (project.configuration.user_configuration.models.global.nb_emitting_states+1).intValue(),
-                                  project.configuration.user_configuration.models.cmp.streams.size(),
+                                  (project.vb_configuration.models.global.nb_emitting_states+1).intValue(),
+                                  project.vb_configuration.models.cmp.streams.size(),
                                   tie_needed,
-                                  project.configurationVoiceBuilding.hts_wrapper
+                                  project.hts_wrapper
                     );
                 }
             });
@@ -126,7 +126,7 @@ public class GenerateMonophoneModelTask extends DefaultTask {
                                   dur_hrest_dir.getAsFile().get(),
                                   script_dur_file.getAsFile().get(),
                                   dur_mmf_file.getAsFile().get(),
-                                  project.configurationVoiceBuilding.hts_wrapper
+                                  project.hts_wrapper
                     );
                 }
             });

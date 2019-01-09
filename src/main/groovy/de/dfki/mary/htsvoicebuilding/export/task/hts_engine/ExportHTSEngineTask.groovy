@@ -88,7 +88,7 @@ public class ExportHTSEngineTask extends DefaultTask {
                         header_file.getAsFile().get(),
                         position_file.getAsFile().get(),
                         voice_file.getAsFile().get(),
-                        project.configuration.user_configuration
+                        project.vb_configuration
                     );
                 }
             });

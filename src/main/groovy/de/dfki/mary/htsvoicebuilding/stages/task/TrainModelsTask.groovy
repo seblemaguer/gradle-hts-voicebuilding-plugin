@@ -61,15 +61,15 @@ public class TrainModelsTask extends DefaultTask {
     @TaskAction
     public void train() {
         if (use_daem) {
-            for (i in 1..project.configuration.user_configuration.settings.daem.nIte) {
-                for (j in 1..project.configuration.user_configuration.settings.training.nIte) {
+            for (i in 1..project.vb_configuration.settings.daem.nIte) {
+                for (j in 1..project.vb_configuration.settings.training.nIte) {
                     // FIXME: log
-                    def k = j + (i-1) ** project.configuration.user_configuration.settings.training.nIte
+                    def k = j + (i-1) ** project.vb_configuration.settings.training.nIte
                     project.logger.info("\n\nIteration $k of Embedded Re-estimation")
 
-                    k = (i / project.configuration.user_configuration.settings.daem.nIte) ** project.configuration.user_configuration.settings.daem.alpha
+                    k = (i / project.vb_configuration.settings.daem.nIte) ** project.vb_configuration.settings.daem.alpha
 
-                    project.configurationVoiceBuilding.hts_wrapper.HERest(scp_file.getAsFile().get().toString(),
+                    project.hts_wrapper.HERest(scp_file.getAsFile().get().toString(),
                                                                           list_file.getAsFile().get().toString(),
                                                                           mlf_file.getAsFile().get().toString(),
                                                                           init_cmp_file.getAsFile().get().toString(),
@@ -80,11 +80,11 @@ public class TrainModelsTask extends DefaultTask {
                 }
             }
         } else {
-            for (i in 1..project.configuration.user_configuration.settings.training.nIte) {
+            for (i in 1..project.vb_configuration.settings.training.nIte) {
                 // FIXME: log
                 project.logger.info("\n\nIteration $i of Embedded Re-estimation")
 
-                project.configurationVoiceBuilding.hts_wrapper.HERest(scp_file.getAsFile().get().toString(),
+                project.hts_wrapper.HERest(scp_file.getAsFile().get().toString(),
                                                                       list_file.getAsFile().get().toString(),
                                                                       mlf_file.getAsFile().get().toString(),
                                                                       init_cmp_file.getAsFile().get().toString(),

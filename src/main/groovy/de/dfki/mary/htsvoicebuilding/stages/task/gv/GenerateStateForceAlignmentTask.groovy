@@ -81,7 +81,7 @@ public class GenerateStateForceAlignmentTask extends DefaultTask {
                         model_cmp_file.getAsFile().get(),
                         model_dur_file.getAsFile().get(),
                         aligned_directory.getAsFile().get(),
-                        project.configurationVoiceBuilding.hts_wrapper
+                        project.hts_wrapper
                     );
                 }
             });

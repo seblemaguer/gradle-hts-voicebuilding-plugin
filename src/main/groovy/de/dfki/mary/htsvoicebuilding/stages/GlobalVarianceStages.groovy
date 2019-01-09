@@ -27,16 +27,16 @@ class GlobalVarianceStages
             description "Generate the global variance prototype file"
 
             // Inputs
-            template_file = project.file("${project.configurationVoiceBuilding.template_dir}/protogv")
+            template_file = project.file("${project.template_dir}/protogv")
 
             // Outputs
-            proto_file = project.file("${project.configurationVoiceBuilding.gv_dir}/proto")
+            proto_file = project.file("${project.gv_dir}/proto")
         }
 
         project.task('generateStateForceAlignment', type: GenerateStateForceAlignmentTask) {
             description "Generate the state force alignment"
 
-            def last_clust = project.configuration.user_configuration.settings.training.nb_clustering - 1
+            def last_clust = project.vb_configuration.settings.training.nb_clustering - 1
 
             // Global Files
             scp_file = project.generateSCPFile.scp_file
@@ -48,7 +48,7 @@ class GlobalVarianceStages
             model_dur_file = project.property("trainClusteredModels_${last_clust}").trained_dur_file
 
             // State Alignment
-            aligned_directory = project.file("${project.configurationVoiceBuilding.gv_fal_dir}/state/")
+            aligned_directory = project.file("${project.gv_fal_dir}/state/")
         }
 
         project.task('forceAlignment', type: GeneratePhoneForceAlignmentTask)  {
@@ -58,21 +58,21 @@ class GlobalVarianceStages
             state_aligned_directory = project.generateStateForceAlignment.aligned_directory
 
             // outputs
-            phone_aligned_directory = project.file("${project.configurationVoiceBuilding.gv_fal_dir}/phone/")
+            phone_aligned_directory = project.file("${project.gv_fal_dir}/phone/")
         }
 
         project.task('GVCoefficientsExtraction', type: ExtractGVCoefficientsTask) {
             description "Extract global variance coefficients"
 
             // Inputs
-            if (project.configuration.user_configuration.gv.disable_force_alignment) {
-                aligned_lab_directory = project.file("${project.configuration.user_configuration.gv.label_dir}")
+            if (project.vb_configuration.gv.disable_force_alignment) {
+                aligned_lab_directory = project.file("${project.vb_configuration.gv.label_dir}")
             } else {
                 aligned_lab_directory = project.forceAlignment.phone_aligned_directory
             }
 
             // Outputs
-            cmp_directory = project.file(project.configurationVoiceBuilding.gv_data_dir)
+            cmp_directory = project.file(project.gv_data_dir)
         }
 
         project.task("generateGVLabFiles", type: GenerateGVLabFilesTask) {
@@ -80,20 +80,21 @@ class GlobalVarianceStages
 
             // Inputs
             scp_file = project.generateSCPFile.scp_file
-            full_lab_dir = project.file(project.configuration.user_configuration.data.full_lab_dir)
+            full_lab_dir = project.file(project.vb_configuration.data.full_lab_dir)
 
             // Outputs
-            gv_lab_dir = project.configurationVoiceBuilding.gv_lab_dir
+            gv_lab_dir = project.gv_lab_dir
         }
 
         project.task("generateGVSCPFile", type: GenerateSCPTask) {
             description "Generate the GV SCP file listing the global variance data files"
 
             // Inputs
+            label_directory = project.property("generateGVLabFiles").gv_lab_dir
             data_directory = project.property('GVCoefficientsExtraction').cmp_directory
 
             // Otputs
-            scp_file = project.file("${project.configurationVoiceBuilding.gv_scp_dir}/train.scp")
+            scp_file = project.file("${project.gv_scp_dir}/train.scp")
         }
 
         project.task('generateGVListFile', type: GenerateListTask) {
@@ -101,13 +102,13 @@ class GlobalVarianceStages
 
             // Inputs
             lab_dir = project.generateGVLabFiles.gv_lab_dir
-            list_basenames = project.file(project.configuration.user_configuration.data.list_files)
+            scp_file = project.generateGVSCPFile.scp_file
 
             // Outputs
-            list_file = project.file("${project.configurationVoiceBuilding.list_dir}/gv.list")
+            list_file = project.file("${project.list_dir}/gv.list")
 
             // // FIXME: how to integrate this?
-            // if (project.configuration.user_configuration.gv.cdgv) {
+            // if (project.vb_configuration.gv.cdgv) {
             //     list_file.write(model_set.join("\n"))
             // } else {
             //     list_file.write("gv")
@@ -121,7 +122,7 @@ class GlobalVarianceStages
             lab_dir = project.generateGVLabFiles.gv_lab_dir
 
             // Outputs
-            mlf_file = project.file("${project.configurationVoiceBuilding.mlf_dir}/gv.mlf")
+            mlf_file = project.file("${project.mlf_dir}/gv.mlf")
         }
 
         /**************************************************************************************************************
@@ -135,8 +136,8 @@ class GlobalVarianceStages
             proto_file = project.generateGVProtoFile.proto_file
 
             // Outputs
-            average_file = project.file("${project.configurationVoiceBuilding.gv_dir}/average.mmf")
-            vfloor_file = project.file("${project.configurationVoiceBuilding.gv_dir}/vFloors")
+            average_file = project.file("${project.gv_dir}/average.mmf")
+            vfloor_file = project.file("${project.gv_dir}/vFloors")
         }
 
         project.task('generateGVFullContext', type: GenerateGVFullContextTask) {
@@ -148,7 +149,7 @@ class GlobalVarianceStages
             vfloor_file = project.generateGVAverage.vfloor_file
 
             // Outputs
-            model_file = project.file("${project.configurationVoiceBuilding.gv_dir}/init/fullcontext.mmf")
+            model_file = project.file("${project.gv_dir}/init/fullcontext.mmf")
         }
 
         project.task('trainGVFullcontext', type: TrainGVModelsTask) {
@@ -161,11 +162,11 @@ class GlobalVarianceStages
             init_model_file = project.generateGVFullContext.model_file
 
             // Outputs
-            trained_model_file = project.file("${project.configurationVoiceBuilding.gv_dir}/trained/fullcontext.mmf")
-            stats_file = project.file("${project.configurationVoiceBuilding.gv_dir}/stats")
+            trained_model_file = project.file("${project.gv_dir}/trained/fullcontext.mmf")
+            stats_file = project.file("${project.gv_dir}/stats")
 
             // Parameters
-            options = ["-C", project.configurationVoiceBuilding.non_variance_config_filename, "-w", 0]
+            options = ["-C", project.non_variance_config_filename, "-w", 0]
         }
 
 
@@ -176,14 +177,14 @@ class GlobalVarianceStages
             description "Generate the clustered global variance model files (1 file per stream)"
 
             // Inputs
-            script_template_file = project.file("${project.configurationVoiceBuilding.template_dir}/cxc.hed");
+            script_template_file = project.file("${project.template_dir}/cxc.hed");
             list_file = project.generateGVListFile.list_file
-            question_file = project.configuration.user_configuration.data.question_file_gv
+            question_file = project.vb_configuration.data.question_file_gv
             stats_file = project.trainGVFullcontext.stats_file
             fullcontext_model_file = project.trainGVFullcontext.trained_model_file
 
             // Outputs
-            clustered_model_file = project.file("$project.configurationVoiceBuilding.gv_dir/init/clustered.mmf")
+            clustered_model_file = project.file("$project.gv_dir/init/clustered.mmf")
         }
 
         project.task("trainGVClustered", type: TrainGVModelsTask) {
@@ -196,8 +197,8 @@ class GlobalVarianceStages
             init_model_file = project.clusteringGV.clustered_model_file
 
             // Outputs
-            stats_file = project.file("${project.configurationVoiceBuilding.gv_dir}/stats_clustered")
-            trained_model_file = project.file("${project.configurationVoiceBuilding.gv_dir}/trained/clustered.mmf")
+            stats_file = project.file("${project.gv_dir}/stats_clustered")
+            trained_model_file = project.file("${project.gv_dir}/trained/clustered.mmf")
         }
 
         /*
@@ -205,8 +206,8 @@ class GlobalVarianceStages
         project.task("averageGV2clustered", dependsOn:"generateGVAverage")
         {
             // FIXME: add inputs.files
-            inputs.files project.configurationVoiceBuilding.gv_dir + "/average.mmf", project.configurationVoiceBuilding.gv_dir + "/vFloors"
-            outputs.files project.configurationVoiceBuilding.gv_dir + "/clustered.mmf"
+            inputs.files project.gv_dir + "/average.mmf", project.gv_dir + "/vFloors"
+            outputs.files project.gv_dir + "/clustered.mmf"
             doLast {
 
                 // Get average informations into head and tail variables
@@ -219,7 +220,7 @@ class GlobalVarianceStages
                 def pdf = []
                 def s = 1
 
-                (project.file("${project.configurationVoiceBuilding.gv_dir}/average.mmf")).eachLine { line ->
+                (project.file("${project.gv_dir}/average.mmf")).eachLine { line ->
                     if (line.indexOf("~h") >= 0) {
                         found_head_end = true
 
@@ -256,16 +257,16 @@ class GlobalVarianceStages
                 }
 
                 // Adding vFloor to head
-                (project.file("${project.configurationVoiceBuilding.gv_dir}/vFloors")).eachLine { line ->
+                (project.file("${project.gv_dir}/vFloors")).eachLine { line ->
                     head += line + "\n"
                 }
 
 
                 // Generate clustered model from average data
-                def clustered_mmf = project.file("${project.configurationVoiceBuilding.gv_dir}/clustered.mmf")
+                def clustered_mmf = project.file("${project.gv_dir}/clustered.mmf")
                 clustered_mmf.write(head)
                 s = 1
-                project.configuration.user_configuration.models.cmp.streams.each { stream ->
+                project.vb_configuration.models.cmp.streams.each { stream ->
                     clustered_mmf.append("~p \"gv_" + stream.name + "_1\"\n")
                     clustered_mmf.append("<STREAM> $s\n")
                     clustered_mmf.append(pdf[s-1])
@@ -275,7 +276,7 @@ class GlobalVarianceStages
                 clustered_mmf.append("~h \"gv\"\n")
                 clustered_mmf.append(mid)
                 s = 1
-                project.configuration.user_configuration.models.cmp.streams.each { stream ->
+                project.vb_configuration.models.cmp.streams.each { stream ->
                     clustered_mmf.append("<STREAM> $s\n")
                     clustered_mmf.append("~p \"gv_" + stream.name + "_1\"\n")
                     s += 1

@@ -58,7 +58,7 @@ public class ComputeVarTask extends DefaultTask {
                     config.params(
                         ffo_dir.getAsFile().get(),
                         global_var_file.getAsFile().get(),
-                        project.configuration.user_configuration
+                        project.vb_configuration
                     );
                 }
             });

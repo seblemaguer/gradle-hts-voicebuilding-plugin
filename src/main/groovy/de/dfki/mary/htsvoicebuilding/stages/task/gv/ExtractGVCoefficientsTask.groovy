@@ -65,7 +65,7 @@ public class ExtractGVCoefficientsTask extends DefaultTask {
 
             // List all input files (FIXME: need to be linked!)
             ArrayList<File> input_files = new ArrayList<File>();
-            for (def stream: project.configuration.user_configuration.models.cmp.streams) {
+            for (def stream: project.vb_configuration.models.cmp.streams) {
                 input_files.add(new File(stream.coeffDir, basename + "." + stream.kind))
             }
 
@@ -79,7 +79,7 @@ public class ExtractGVCoefficientsTask extends DefaultTask {
                     public void execute(WorkerConfiguration config) {
                         config.setIsolationMode(IsolationMode.NONE);
                         config.params(input_files, lab_file, cmp_file,
-                                      project.configuration.user_configuration);
+                                      project.vb_configuration);
                     }
                 });
         }
