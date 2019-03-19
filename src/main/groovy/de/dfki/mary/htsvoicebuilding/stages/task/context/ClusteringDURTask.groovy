@@ -102,7 +102,7 @@ public class ClusteringDURTask extends DefaultTask {
                         script_file.getAsFile().get(),
                         clustered_model_file.getAsFile().get(),
                         project.hts_wrapper,
-                        project.vb_configuration
+                        project.gradle.vb_configuration
                     );
                 }
             });

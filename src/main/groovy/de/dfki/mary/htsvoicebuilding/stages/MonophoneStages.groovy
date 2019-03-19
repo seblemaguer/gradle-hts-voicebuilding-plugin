@@ -18,7 +18,7 @@ class MonophoneStages {
             description "Initialise the monophone model files using HInit and HRest"
 
             // Some global configuration
-            use_daem = project.vb_configuration.settings.daem.use
+            use_daem = project.gradle.vb_configuration.settings.daem.use
 
             // Meta files
             scp_file = project.generateSCPFile.scp_file
@@ -73,7 +73,7 @@ class MonophoneStages {
         project.task('trainMonophoneMMF', type: TrainModelsTask) {
             description "EM training of the monophone model"
 
-            use_daem = project.vb_configuration.settings.daem.use
+            use_daem = project.gradle.vb_configuration.settings.daem.use
 
             scp_file = project.generateSCPFile.scp_file
             list_file = project.generateMonophoneList.list_file

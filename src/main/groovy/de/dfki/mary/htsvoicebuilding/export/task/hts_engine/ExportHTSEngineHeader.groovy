@@ -59,7 +59,7 @@ public class ExportHTSEngineHeaderTask extends DefaultTask {
                     config.params(
                         template_file.getAsFile().get(),
                         header_file.getAsFile().get(),
-                        project.vb_configuration
+                        project.gradle.vb_configuration
                     );
                 }
             });

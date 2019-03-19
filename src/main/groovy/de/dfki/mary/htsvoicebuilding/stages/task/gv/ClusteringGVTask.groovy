@@ -93,7 +93,7 @@ public class ClusteringGVTask extends DefaultTask {
                         project.gv_dir,
                         project.hhed_script_dir,
                         project.hts_wrapper,
-                        project.vb_configuration
+                        project.gradle.vb_configuration
                     );
                 }
             });

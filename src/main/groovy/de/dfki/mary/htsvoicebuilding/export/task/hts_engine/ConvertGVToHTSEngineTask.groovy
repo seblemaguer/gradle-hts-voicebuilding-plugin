@@ -76,7 +76,7 @@ public class ConvertGVToHTSEngineTask extends DefaultTask {
     @TaskAction
     public void generate() {
         def start_stream = 1;
-        for (def stream: project.vb_configuration.models.cmp.streams) {
+        for (def stream: project.gradle.vb_configuration.models.cmp.streams) {
 
             // Get the script file
             File script_file = null;

@@ -108,7 +108,7 @@ public class InitModelsTask extends DefaultTask {
                                   average_dur_template_file.getAsFile().get(),
                                   vfloor_dur_file.getAsFile().get(),
                                   average_dur_file.getAsFile().get(),
-                                  project.vb_configuration);
+                                  project.gradle.vb_configuration);
                 }
             });
     }

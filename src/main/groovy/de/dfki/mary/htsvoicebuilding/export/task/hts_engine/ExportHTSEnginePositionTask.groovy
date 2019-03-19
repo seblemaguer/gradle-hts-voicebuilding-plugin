@@ -77,7 +77,7 @@ public class ExportHTSEnginePositionTask extends DefaultTask {
                         gv_pdfs?.getFiles(),
                         gv_trees?.getFiles(),
                         position_file.getAsFile().get(),
-                        project.vb_configuration
+                        project.gradle.vb_configuration
                     );
                 }
             });

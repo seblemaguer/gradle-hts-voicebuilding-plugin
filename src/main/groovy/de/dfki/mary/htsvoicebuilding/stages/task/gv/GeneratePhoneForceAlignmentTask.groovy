@@ -50,7 +50,7 @@ public class GeneratePhoneForceAlignmentTask extends DefaultTask {
     @TaskAction
     public void generate() {
 
-        def id_last_state = project.vb_configuration.models.global.nb_emitting_states + 1
+        def id_last_state = project.gradle.vb_configuration.models.global.nb_emitting_states + 1
 
         for (File state_file: state_aligned_directory.get().getAsFileTree()) {
             def phone_file = new File(state_file.toString().replaceAll("/state/", "/phone/"))

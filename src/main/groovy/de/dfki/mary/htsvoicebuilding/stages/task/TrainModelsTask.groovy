@@ -61,13 +61,13 @@ public class TrainModelsTask extends DefaultTask {
     @TaskAction
     public void train() {
         if (use_daem) {
-            for (i in 1..project.vb_configuration.settings.daem.nIte) {
-                for (j in 1..project.vb_configuration.settings.training.nIte) {
+            for (i in 1..project.gradle.vb_configuration.settings.daem.nIte) {
+                for (j in 1..project.gradle.vb_configuration.settings.training.nIte) {
                     // FIXME: log
-                    def k = j + (i-1) ** project.vb_configuration.settings.training.nIte
+                    def k = j + (i-1) ** project.gradle.vb_configuration.settings.training.nIte
                     project.logger.info("\n\nIteration $k of Embedded Re-estimation")
 
-                    k = (i / project.vb_configuration.settings.daem.nIte) ** project.vb_configuration.settings.daem.alpha
+                    k = (i / project.gradle.vb_configuration.settings.daem.nIte) ** project.gradle.vb_configuration.settings.daem.alpha
 
                     project.hts_wrapper.HERest(scp_file.getAsFile().get().toString(),
                                                                           list_file.getAsFile().get().toString(),
@@ -80,7 +80,7 @@ public class TrainModelsTask extends DefaultTask {
                 }
             }
         } else {
-            for (i in 1..project.vb_configuration.settings.training.nIte) {
+            for (i in 1..project.gradle.vb_configuration.settings.training.nIte) {
                 // FIXME: log
                 project.logger.info("\n\nIteration $i of Embedded Re-estimation")
 

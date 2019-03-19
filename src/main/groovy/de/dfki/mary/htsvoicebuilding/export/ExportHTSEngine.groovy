@@ -8,7 +8,7 @@ import de.dfki.mary.htsvoicebuilding.export.task.hts_engine.*
 
 class ExportHTSEngine {
     public static void addTasks(Project project) {
-        def last_cluster = project.vb_configuration.settings.training.nb_clustering - 1
+        def last_cluster = project.gradle.vb_configuration.settings.training.nb_clustering - 1
 
         def export_dir = new File("$project.buildDir/hts_engine")
         export_dir.mkdirs()
@@ -24,13 +24,12 @@ class ExportHTSEngine {
             description "Convert the CMP set to HTS Engine voice compatible format"
 
             // Inputs
-            script_template_file = project.file("${project.template_dir}/cv_hts_engine.hed");
             list_file = project.generateFullList.list_file
 
             // FIXME: find a more direct part for the trees!
             def m_files = []
-            project.vb_configuration.models.cmp.streams.each { stream ->
-                for (i in 2..project.vb_configuration.models.global.nb_emitting_states+1) {
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
+                for (i in 2..project.gradle.vb_configuration.models.global.nb_emitting_states+1) {
                     def f = project.file("${project.tree_dir}/fullcontext_${last_cluster}/${stream.name}_${i}.inf")
                     m_files.add(f)
                 }
@@ -41,14 +40,14 @@ class ExportHTSEngine {
 
             // Outputs
             m_files = []
-            project.vb_configuration.models.cmp.streams.each { stream ->
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                 def f = project.file("${project.hhed_script_dir}/cv_hts_engine_${stream.kind}.hed")
                 m_files.add(f)
             }
             script_files.setFrom(m_files)
 
             m_files = []
-            project.vb_configuration.models.cmp.streams.each { stream ->
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                 def f = project.file("${export_dir}/${stream.kind}.inf")
                 m_files.add(f)
             }
@@ -56,7 +55,7 @@ class ExportHTSEngine {
 
 
             m_files = []
-            project.vb_configuration.models.cmp.streams.each { stream ->
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                 def f = project.file("${export_dir}/${stream.kind}.pdf")
                 m_files.add(f)
             }
@@ -89,7 +88,7 @@ class ExportHTSEngine {
 
             // FIXME: find a more direct part for the trees!
             def m_files = []
-            project.vb_configuration.models.cmp.streams.each { stream ->
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                 def f = project.file("${project.gv_dir}/${stream.name}.inf")
                 m_files.add(f)
             }
@@ -99,21 +98,21 @@ class ExportHTSEngine {
 
             // Outputs
             m_files = []
-            project.vb_configuration.models.cmp.streams.each { stream ->
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                 def f = project.file("${project.hhed_script_dir}/cv_hts_engine_gv_${stream.kind}.hed")
                 m_files.add(f)
             }
             script_files.setFrom(m_files)
 
             m_files = []
-            project.vb_configuration.models.cmp.streams.each { stream ->
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                 def f = project.file("${export_dir}/gv_${stream.kind}.inf")
                 m_files.add(f)
             }
             output_tree_files.setFrom(m_files)
 
             m_files = []
-            project.vb_configuration.models.cmp.streams.each { stream ->
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                 def f = project.file("${export_dir}/gv_${stream.kind}.pdf")
                 m_files.add(f)
             }
@@ -131,7 +130,7 @@ class ExportHTSEngine {
             cmp_trees = project.property("convertCMPToHTSEngine").output_tree_files
 
             // GV dependencies (if needed)
-            if (project.vb_configuration.gv.use) {
+            if (project.gradle.vb_configuration.gv.use) {
                 dependsOn "convertGVToHTSEngine"
                 gv_pdfs  = project.property("convertGVToHTSEngine").output_model_files
                 gv_trees = project.property("convertGVToHTSEngine").output_tree_files
@@ -154,13 +153,15 @@ class ExportHTSEngine {
             cmp_trees = project.property("convertCMPToHTSEngine").output_tree_files
 
             // GV dependencies (if needed)
-            if (project.vb_configuration.gv.use) {
+            if (project.gradle.vb_configuration.gv.use) {
                 gv_pdfs  = project.property("convertGVToHTSEngine").output_model_files
                 gv_trees = project.property("convertGVToHTSEngine").output_tree_files
             }
 
             // Final voice file
             voice_file = project.file("${export_dir}/voice.hts_voice")
+
+            // FIXME: check if marytts export is enabled
         }
     }
 }

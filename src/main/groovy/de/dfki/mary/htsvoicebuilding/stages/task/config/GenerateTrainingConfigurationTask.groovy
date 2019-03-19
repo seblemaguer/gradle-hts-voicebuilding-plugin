@@ -54,7 +54,7 @@ public class GenerateTrainingConfigurationTask extends DefaultTask {
         // train.cfg
         int nbstream = 0
         String vfloorvalues = ""
-        project.vb_configuration.models.cmp.streams.each { stream ->
+        project.gradle.vb_configuration.models.cmp.streams.each { stream ->
             if (stream.is_msd) {
                 nbstream += stream.winfiles.size()
                 for (i in 0..(stream.winfiles.size()-1)) {
@@ -74,9 +74,9 @@ public class GenerateTrainingConfigurationTask extends DefaultTask {
                     config.setIsolationMode(IsolationMode.NONE);
                     config.params(template_file.getAsFile().get(),
                                   configuration_file.getAsFile().get(),
-                                  (project.vb_configuration.models.dur.vflr * 100).floatValue(),
-                                  project.vb_configuration.settings.training.maxdev.intValue(),
-                                  project.vb_configuration.settings.training.mindur.intValue(),
+                                  (project.gradle.vb_configuration.models.dur.vflr * 100).floatValue(),
+                                  project.gradle.vb_configuration.settings.training.maxdev.intValue(),
+                                  project.gradle.vb_configuration.settings.training.mindur.intValue(),
                                   nbstream, vfloorvalues);
                 }
             });

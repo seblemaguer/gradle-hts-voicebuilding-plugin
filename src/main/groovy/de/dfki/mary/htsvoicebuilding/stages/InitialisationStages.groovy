@@ -33,7 +33,7 @@ class InitialisationStages {
         project.task('generateSCPFile', type: GenerateSCPTask) {
             description "Generate the SCP file which contains the list of files used to train the models"
 
-            label_directory = project.file(project.vb_configuration.data.mono_lab_dir)
+            label_directory = project.file(project.gradle.vb_configuration.data.mono_lab_dir)
             data_directory = project.file("${project.buildDir}/cmp") // FIXME: more general default path
             scp_file = project.train_scp
         }
@@ -42,13 +42,13 @@ class InitialisationStages {
             description "Generate the Master Label File for Monophone training"
 
             mlf_file = project.file(project.mono_mlf_filename)
-            lab_dir = project.file(project.vb_configuration.data.mono_lab_dir)
+            lab_dir = project.file(project.gradle.vb_configuration.data.mono_lab_dir)
         }
 
         project.task('generateMonophoneList', type: GenerateListTask) {
             description "Generate the list of monophone labels"
 
-            lab_dir = project.file(project.vb_configuration.data.mono_lab_dir)
+            lab_dir = project.file(project.gradle.vb_configuration.data.mono_lab_dir)
             scp_file = project.generateSCPFile.scp_file
             list_file = project.file(project.mono_list_filename)
         }
@@ -89,7 +89,7 @@ class InitialisationStages {
 
             // Fill values
             def m_files = []
-            project.vb_configuration.models.cmp.streams.each { stream ->
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                 def f = project.file("${project.config_dir}/${stream.name}.cfg")
                 m_files.add(f)
                 mocc_values.put(f, stream.mocc);
@@ -107,7 +107,7 @@ class InitialisationStages {
             mocc_files.setFrom([f])
 
             // Generate value hash
-            mocc_values.put(f, project.vb_configuration.models.dur.mocc);
+            mocc_values.put(f, project.gradle.vb_configuration.models.dur.mocc);
 
             // FIXME: should be dependency
             template_file = project.file("${project.template_dir}/mocc.cfg")

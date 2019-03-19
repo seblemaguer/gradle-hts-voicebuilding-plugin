@@ -24,7 +24,7 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
 
             // Debug switching
             def debug = false
-            if (project.vb_configuration.settings.debug) {
+            if (project.gradle.vb_configuration.settings.debug) {
                 debug = true
             }
 
@@ -71,7 +71,7 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
             // Specific initialisation directory
             project.file("${cmp_model_dir}/HRest").mkdirs()
             project.file("${dur_model_dir}/HRest").mkdirs()
-            if (!project.vb_configuration.settings.daem.use) {
+            if (!project.gradle.vb_configuration.settings.daem.use) {
                 project.file("${cmp_model_dir}/HInit").mkdirs()
                 project.file("${dur_model_dir}/Hinit").mkdirs()
             }
@@ -83,7 +83,7 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
             project.file("${dur_model_dir}/monophone/trained").mkdirs()
 
             // full context
-            for (int i=0; i<project.vb_configuration.settings.training.nb_clustering; i++) {
+            for (int i=0; i<project.gradle.vb_configuration.settings.training.nb_clustering; i++) {
                 project.file("${cmp_model_dir}/fullcontext_$i/init").mkdirs()
                 project.file("${dur_model_dir}/fullcontext_$i/init").mkdirs()
                 project.file("${cmp_model_dir}/fullcontext_$i/trained").mkdirs()
@@ -91,7 +91,7 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
             }
 
             // GV
-            if (project.vb_configuration.gv.use) {
+            if (project.gradle.vb_configuration.gv.use) {
                 gv_dir        = project.file("$project.buildDir/gv/models")
                 gv_data_dir   = project.file("$project.buildDir/gv/data")
                 gv_fal_dir    = project.file("$project.buildDir/gv/fal")
@@ -113,10 +113,10 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
             }
 
             // DNN
-            if ((project.vb_configuration.settings.training.kind) &&
-                (project.vb_configuration.settings.training.kind.equals("dnn"))) {
+            if ((project.gradle.vb_configuration.settings.training.kind) &&
+                (project.gradle.vb_configuration.settings.training.kind.equals("dnn"))) {
 
-                qconf = new File(project.vb_configuration.settings.dnn.qconf)
+                qconf = new File(project.gradle.vb_configuration.settings.dnn.qconf)
                 train_dnn_scp = project.file("$project.buildDir/train_dnn.scp")
                 dnn_dir = project.file("${project.buildDir}/dnn/models")
                 alignment_dir = project.file("$project.buildDir/dnn/alignment")
@@ -197,9 +197,9 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
 
             // Instanciate HTS wrapper
             HTSWrapper.logger = project.logger
-            def beams = project.vb_configuration.settings.training.beam.split() as List
+            def beams = project.gradle.vb_configuration.settings.training.beam.split() as List
             hts_wrapper = new HTSWrapper(beams, "$project.train_config_filename",
-                                             project.vb_configuration.settings.training.wf,
+                                             project.gradle.vb_configuration.settings.training.wf,
                                              project.gradle.startParameter.getMaxWorkerCount(),
                                              "$project.buildDir/tmp/utils/HERest.pl", debug)
         }
@@ -226,19 +226,16 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
     private void addTrainTask(Project project) {
         project.task('train') {
             // RAW
-            if (project.vb_configuration.output.raw) {
+            if ((project.gradle.vb_configuration.export.raw) &&
+                (project.gradle.vb_configuration.export.raw.enabled)) {
                 dependsOn "exportRAW"
             }
 
             // HTS engine
-            if (project.vb_configuration.output.hts_engine) {
+            if ((project.gradle.vb_configuration.export.hts_engine) &&
+                (project.gradle.vb_configuration.export.hts_engine.enabled)) {
                 dependsOn "exportHTSEngine"
             }
-
-            // // MaryTTS
-            // if (project.vb_configuration.output.marytts) {
-            //     dependsOn "exportMaryTTS"
-            // }
         }
     }
 }

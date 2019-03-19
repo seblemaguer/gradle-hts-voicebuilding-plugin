@@ -117,7 +117,7 @@ public class ClusteringCMPTask extends DefaultTask {
     @TaskAction
     public void cluster() {
 
-        for (i in 2..project.vb_configuration.models.global.nb_emitting_states+1) {
+        for (i in 2..project.gradle.vb_configuration.models.global.nb_emitting_states+1) {
             // 0. Get/init some baseline files
             File script_file = new File("${project.hhed_script_dir}/${local_cur_clus_it}/cxc_${stream_name}_${i}.hed")
             File tree_file = tree_file_list.get(i-2)

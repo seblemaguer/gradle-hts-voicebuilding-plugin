@@ -1,4 +1,4 @@
-package de.dfki.mary.htsvoicebuilding.export.task.hts_engine
+package de.dfki.mary.htsvoicebuilding.export.task.raw
 
 // List
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import org.gradle.api.tasks.*
  *  Task which Description
  *
  */
-public class ConvertCMPToHTSEngineTask extends DefaultTask {
+public class ExportCMPRAWTreeTask extends DefaultTask {
     /** The worker */
     private final WorkerExecutor workerExecutor;
 
@@ -49,10 +49,6 @@ public class ConvertCMPToHTSEngineTask extends DefaultTask {
     @OutputFiles
     final ConfigurableFileCollection output_tree_files = project.files();
 
-    /** The converted model files */
-    @OutputFiles
-    final ConfigurableFileCollection output_model_files = project.files();
-
 
     /**
      *  The constructor which defines which worker executor is going to achieve the conversion job
@@ -60,7 +56,7 @@ public class ConvertCMPToHTSEngineTask extends DefaultTask {
      *  @param workerExecutor the worker executor
      */
     @Inject
-    public ConvertCMPToHTSEngineTask(WorkerExecutor workerExecutor) {
+    public ExportCMPRAWTreeTask(WorkerExecutor workerExecutor) {
         super();
         this.workerExecutor = workerExecutor;
     }
@@ -80,7 +76,7 @@ public class ConvertCMPToHTSEngineTask extends DefaultTask {
             // Get the script file
             File script_file = null;
             for (File cur_file: script_files.getFiles()) {
-                if (cur_file.getName().startsWith("cv_hts_engine_${stream.kind}.")) {
+                if (cur_file.getName().startsWith("cv_raw_${stream.kind}.")) {
                     script_file = cur_file;
                     break;
                 }
@@ -103,18 +99,9 @@ public class ConvertCMPToHTSEngineTask extends DefaultTask {
                 }
             }
 
-            // Get the output model file
-            File output_model_file = null;
-            for (File cur_file: output_model_files.getFiles()) {
-                if (cur_file.getName().startsWith("${stream.kind}.")) {
-                    output_model_file = cur_file;
-                    break;
-                }
-            }
-
 
             // Submit the execution
-            workerExecutor.submit(ConvertCMPToHTSEngineWorker.class,
+            workerExecutor.submit(ExportCMPRAWTreeWorker.class,
                                   new Action<WorkerConfiguration>() {
                     @Override
                     public void execute(WorkerConfiguration config) {
@@ -126,7 +113,6 @@ public class ConvertCMPToHTSEngineTask extends DefaultTask {
                             input_model_file.getAsFile().get(),
                             script_file,
                             output_tree_file,
-                            output_model_file,
                             project.hts_wrapper,
                         );
                     }
@@ -146,7 +132,7 @@ public class ConvertCMPToHTSEngineTask extends DefaultTask {
  *  Worker to Description
  *
  */
-class ConvertCMPToHTSEngineWorker implements Runnable {
+class ExportCMPRAWTreeWorker implements Runnable {
 
     /** The input tree file */
     private ArrayList<File> input_tree_files;
@@ -163,9 +149,6 @@ class ConvertCMPToHTSEngineWorker implements Runnable {
     /** The converted tree file */
     private File output_tree_file;
 
-    /** The converted model file */
-    private File output_model_file;
-
     /** The start index of the stream */
     private int stream_id;
 
@@ -177,10 +160,10 @@ class ConvertCMPToHTSEngineWorker implements Runnable {
      *
      */
     @Inject
-    public ConvertCMPToHTSEngineWorker(File list_file, int stream_id,
-                                       ArrayList<File> input_tree_files, File input_model_file,
-                                       File script_file, File output_tree_file, File output_model_file,
-                                       HTSWrapper hts_wrapper) {
+    public ExportCMPRAWTreeWorker(File list_file, int stream_id,
+                                  ArrayList<File> input_tree_files, File input_model_file,
+                                  File script_file, File output_tree_file,
+                                  HTSWrapper hts_wrapper) {
         // Inputs
         this.list_file = list_file;
         this.input_tree_files = input_tree_files;
@@ -189,7 +172,6 @@ class ConvertCMPToHTSEngineWorker implements Runnable {
         // Outputs
         this.script_file = script_file;
         this.output_tree_file = output_tree_file;
-        this.output_model_file = output_model_file;
 
         // Utils
         this.stream_id = stream_id;
@@ -204,9 +186,8 @@ class ConvertCMPToHTSEngineWorker implements Runnable {
     @Override
     public void run() {
 
-        def tmp_dir = new File(output_model_file.getParent().toString() + "/cmp")
+        def tmp_dir = new File(output_tree_file.getParent().toString() + "/cmp")
         tmp_dir.mkdirs()
-        def tmp_model = new File(tmp_dir.toString(),  "pdf.${stream_id}")
         def tmp_tree = new File(tmp_dir.toString(), "trees.${stream_id}")
 
         // Generate script file
@@ -215,8 +196,7 @@ class ConvertCMPToHTSEngineWorker implements Runnable {
             script_content += "LT $tree_file\n"
         }
         script_content += "\n"
-        script_content += "CT \"${tmp_tree.getParent().toString()}\"\n\n"
-        script_content += "CM \"${tmp_model.getParent().toString()}\"\n"
+        script_content += "ST \"${tmp_tree.toString()}\"\n\n"
         script_file.text = script_content
 
         // Apply conversion
@@ -226,7 +206,6 @@ class ConvertCMPToHTSEngineWorker implements Runnable {
                                           [])
 
         // Move the files
-        assert tmp_model.renameTo(output_model_file)
         assert tmp_tree.renameTo(output_tree_file)
     }
 }

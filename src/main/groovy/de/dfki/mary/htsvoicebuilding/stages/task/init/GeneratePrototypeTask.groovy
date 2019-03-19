@@ -58,7 +58,7 @@ public class GeneratePrototypeTask extends DefaultTask {
                     config.setIsolationMode(IsolationMode.NONE);
                     config.params(template_file.getAsFile().get(),
                                   prototype_file.getAsFile().get(),
-                                  project.vb_configuration);
+                                  project.gradle.vb_configuration);
                 }
             });
     }

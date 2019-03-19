@@ -99,7 +99,7 @@ public class JoinClusteredCMPTask extends DefaultTask {
                         output_flag.getAsFile().get(),
                         stream_start, stream_end,
                         project.hts_wrapper,
-                        project.vb_configuration
+                        project.gradle.vb_configuration
                     );
                 }
             });

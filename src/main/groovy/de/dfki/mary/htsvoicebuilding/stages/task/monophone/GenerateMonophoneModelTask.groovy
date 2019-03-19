@@ -88,7 +88,7 @@ public class GenerateMonophoneModelTask extends DefaultTask {
     public void generate() {
         // For CMP check if we need to tie
         boolean tie_needed = false;
-        for (def stream: project.vb_configuration.models.cmp.streams) {
+        for (def stream: project.gradle.vb_configuration.models.cmp.streams) {
             if (stream.weight != 1.0) {
                 tie_needed = true;
                 break;
@@ -107,8 +107,8 @@ public class GenerateMonophoneModelTask extends DefaultTask {
                                   cmp_hrest_dir.getAsFile().get(),
                                   script_cmp_file.getAsFile().get(),
                                   cmp_mmf_file.getAsFile().get(),
-                                  (project.vb_configuration.models.global.nb_emitting_states+1).intValue(),
-                                  project.vb_configuration.models.cmp.streams.size(),
+                                  (project.gradle.vb_configuration.models.global.nb_emitting_states+1).intValue(),
+                                  project.gradle.vb_configuration.models.cmp.streams.size(),
                                   tie_needed,
                                   project.hts_wrapper
                     );

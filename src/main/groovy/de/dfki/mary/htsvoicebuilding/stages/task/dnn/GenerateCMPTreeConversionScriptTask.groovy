@@ -57,7 +57,7 @@ public class GenerateCMPTreeConversionScriptTask extends DefaultTask {
                         new File(project.tree_dir), // FIXME: externalize
                         new File("$project.list_dir/tiedlist_cmp"), // FIXME: externalize
                         script_file.getAsFile().get(),
-                        project.vb_configuration
+                        project.gradle.vb_configuration
                     );
                 }
             });

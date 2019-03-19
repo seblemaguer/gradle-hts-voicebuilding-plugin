@@ -36,7 +36,7 @@ class GlobalVarianceStages
         project.task('generateStateForceAlignment', type: GenerateStateForceAlignmentTask) {
             description "Generate the state force alignment"
 
-            def last_clust = project.vb_configuration.settings.training.nb_clustering - 1
+            def last_clust = project.gradle.vb_configuration.settings.training.nb_clustering - 1
 
             // Global Files
             scp_file = project.generateSCPFile.scp_file
@@ -65,8 +65,8 @@ class GlobalVarianceStages
             description "Extract global variance coefficients"
 
             // Inputs
-            if (project.vb_configuration.gv.disable_force_alignment) {
-                aligned_lab_directory = project.file("${project.vb_configuration.gv.label_dir}")
+            if (project.gradle.vb_configuration.gv.disable_force_alignment) {
+                aligned_lab_directory = project.file("${project.gradle.vb_configuration.gv.label_dir}")
             } else {
                 aligned_lab_directory = project.forceAlignment.phone_aligned_directory
             }
@@ -80,7 +80,7 @@ class GlobalVarianceStages
 
             // Inputs
             scp_file = project.generateSCPFile.scp_file
-            full_lab_dir = project.file(project.vb_configuration.data.full_lab_dir)
+            full_lab_dir = project.file(project.gradle.vb_configuration.data.full_lab_dir)
 
             // Outputs
             gv_lab_dir = project.gv_lab_dir
@@ -108,7 +108,7 @@ class GlobalVarianceStages
             list_file = project.file("${project.list_dir}/gv.list")
 
             // // FIXME: how to integrate this?
-            // if (project.vb_configuration.gv.cdgv) {
+            // if (project.gradle.vb_configuration.gv.cdgv) {
             //     list_file.write(model_set.join("\n"))
             // } else {
             //     list_file.write("gv")
@@ -179,7 +179,7 @@ class GlobalVarianceStages
             // Inputs
             script_template_file = project.file("${project.template_dir}/cxc.hed");
             list_file = project.generateGVListFile.list_file
-            question_file = project.vb_configuration.data.question_file_gv
+            question_file = project.gradle.vb_configuration.data.question_file_gv
             stats_file = project.trainGVFullcontext.stats_file
             fullcontext_model_file = project.trainGVFullcontext.trained_model_file
 
@@ -266,7 +266,7 @@ class GlobalVarianceStages
                 def clustered_mmf = project.file("${project.gv_dir}/clustered.mmf")
                 clustered_mmf.write(head)
                 s = 1
-                project.vb_configuration.models.cmp.streams.each { stream ->
+                project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                     clustered_mmf.append("~p \"gv_" + stream.name + "_1\"\n")
                     clustered_mmf.append("<STREAM> $s\n")
                     clustered_mmf.append(pdf[s-1])
@@ -276,7 +276,7 @@ class GlobalVarianceStages
                 clustered_mmf.append("~h \"gv\"\n")
                 clustered_mmf.append(mid)
                 s = 1
-                project.vb_configuration.models.cmp.streams.each { stream ->
+                project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                     clustered_mmf.append("<STREAM> $s\n")
                     clustered_mmf.append("~p \"gv_" + stream.name + "_1\"\n")
                     s += 1

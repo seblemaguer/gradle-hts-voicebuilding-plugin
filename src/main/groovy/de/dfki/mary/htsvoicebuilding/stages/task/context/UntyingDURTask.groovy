@@ -71,7 +71,7 @@ public class UntyingDURTask extends DefaultTask {
                         untying_script_file.getAsFile().get(),
                         output_model_file.getAsFile().get(),
                         project.hts_wrapper,
-                        project.vb_configuration
+                        project.gradle.vb_configuration
                     );
                 }
             });

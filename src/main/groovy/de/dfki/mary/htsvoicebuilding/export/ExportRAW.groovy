@@ -6,40 +6,58 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import org.apache.commons.io.FileUtils
 
-import org.gradle.api.JavaVersion
-import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.logging.LogLevel
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.MavenPlugin
-import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.Exec
-import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.bundling.Zip
 
+// HTS Engine export tasks import
+import de.dfki.mary.htsvoicebuilding.export.task.raw.*
 
 class ExportRAW {
+
     public static void addTasks(Project project) {
-        def last_cluster = project.vb_configuration.settings.training.nb_clustering - 1
+        def last_cluster = project.gradle.vb_configuration.settings.training.nb_clustering - 1
         def export_dir = new File("$project.buildDir/raw")
         export_dir.mkdirs()
 
-        // FIXME: problem here !
+
+        project.task("exportCMPRAWTrees", type: ExportCMPRAWTreeTask) {
+            description "Convert the CMP set to HTS Engine voice compatible format"
+
+            // Inputs
+            list_file = project.generateFullList.list_file
+
+            // FIXME: find a more direct part for the trees!
+            def m_files = []
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
+                for (i in 2..project.gradle.vb_configuration.models.global.nb_emitting_states+1) {
+                    def f = project.file("${project.tree_dir}/fullcontext_${last_cluster}/${stream.name}_${i}.inf")
+                    m_files.add(f)
+                }
+            }
+            input_tree_files.setFrom(m_files)
+
+            input_model_file = project.property("trainClusteredModels_${last_cluster}").trained_cmp_file
+
+            // Outputs
+            m_files = []
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
+                def f = project.file("${project.hhed_script_dir}/cv_raw_${stream.kind}.hed")
+                m_files.add(f)
+            }
+            script_files.setFrom(m_files)
+
+            m_files = []
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
+                def f = project.file("${export_dir}/trees/${stream.kind}.inf")
+                m_files.add(f)
+            }
+            output_tree_files.setFrom(m_files)
+        }
+
         project.task("exportRAWTrees") {
-            dependsOn project.property("trainClusteredModels_${last_cluster}")
+            dependsOn project.property("exportCMPRAWTrees")
 
             doLast {
                 def tree_dir = new File("$export_dir/trees")
-                tree_dir.mkdirs()
-
-                project.vb_configuration.models.cmp.streams.each { stream ->
-                    project.copy {
-                        from "${project.tree_dir}/${stream.name}.${last_cluster}.inf"
-                        into tree_dir
-                        rename { file -> "${stream.name}.inf"}
-                    }
-                }
-
                 project.copy {
                     from "${project.tree_dir}/dur.${last_cluster}.inf"
                     into tree_dir
@@ -90,7 +108,7 @@ class ExportRAW {
                 gv_dir.mkdirs()
 
                 // Trees
-                project.vb_configuration.models.cmp.streams.each { stream ->
+                project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                     project.copy {
                         from "${project.gv_dir}/${stream.name}.inf"
                         into gv_dir
@@ -118,7 +136,7 @@ class ExportRAW {
             doLast {
 
                 (new File("$export_dir/win")).mkdirs()
-                project.vb_configuration.models.cmp.streams.each { stream ->
+                project.gradle.vb_configuration.models.cmp.streams.each { stream ->
                     stream.winfiles.each { win_file ->
                         project.copy {
                             from win_file
@@ -141,7 +159,7 @@ class ExportRAW {
                 FileUtils.copyDirectory(new File("$project.buildDir/dnn/var"),
                                         new File("$export_dir/DNN/var"));
 
-                Files.copy(Paths.get(project.vb_configuration.settings.dnn.qconf),
+                Files.copy(Paths.get(project.gradle.vb_configuration.settings.dnn.qconf),
                            Paths.get("$export_dir/DNN/qconf.conf"));
             }
         }
@@ -149,8 +167,13 @@ class ExportRAW {
 
         project.task("exportRAWConfiguration") {
             doLast {
-                // Adapt configuration file and expose it
-                def export_configuration = project.vb_configuration
+                def bos = new ByteArrayOutputStream()
+                def oos = new ObjectOutputStream(bos)
+                oos.writeObject(project.gradle.vb_configuration); oos.flush()
+
+                def bin = new ByteArrayInputStream(bos.toByteArray())
+                def ois = new ObjectInputStream(bin)
+                def export_configuration = ois.readObject()
                 export_configuration.remove("data")
 
                 export_configuration.models.cmp.streams.each { stream ->
@@ -174,12 +197,12 @@ class ExportRAW {
             dependsOn project.exportRAWLists
             dependsOn project.exportRAWConfiguration
 
-            if (project.vb_configuration.gv.use) {
+            if (project.gradle.vb_configuration.gv.use) {
                 dependsOn project.exportRAWGV
             }
 
-            if ((project.vb_configuration.settings.training.kind) &&
-                (project.vb_configuration.settings.training.kind.equals("dnn")))  {
+            if ((project.gradle.vb_configuration.settings.training.kind) &&
+                (project.gradle.vb_configuration.settings.training.kind.equals("dnn")))  {
                 dependsOn project.exportRAWDNNModels
             }
         }

@@ -26,7 +26,7 @@ class ContextStages
             description "Generate the master label file for the full context labels"
 
             // Inputs
-            lab_dir = project.file(project.vb_configuration.data.full_lab_dir)
+            lab_dir = project.file(project.gradle.vb_configuration.data.full_lab_dir)
 
             // Outputs
             mlf_file = project.file(project.full_mlf_filename)
@@ -36,7 +36,7 @@ class ContextStages
             description "Generate the full context label list file"
 
             // Inputs
-            lab_dir = project.file(project.vb_configuration.data.full_lab_dir)
+            lab_dir = project.file(project.gradle.vb_configuration.data.full_lab_dir)
             scp_file = project.generateSCPFile.scp_file
 
             // Outputs
@@ -86,7 +86,7 @@ class ContextStages
         }
 
 
-        project.vb_configuration.settings.training.nb_clustering.times { cur_clus_it ->
+        project.gradle.vb_configuration.settings.training.nb_clustering.times { cur_clus_it ->
 
             // Define some variables to compute stream boundaries
             def start_stream = 0
@@ -104,7 +104,7 @@ class ContextStages
                 output_flag = project.file("${project.cmp_model_dir}/fullcontext_${cur_clus_it}/init/prepare.flag")
             }
 
-            project.vb_configuration.models.cmp.streams.each { stream ->
+            project.gradle.vb_configuration.models.cmp.streams.each { stream ->
 
                 /*=================================================
                  # Compute stream boundaries
@@ -138,7 +138,7 @@ class ContextStages
                     script_template_file = project.file("${project.template_dir}/cxc.hed");
                     list_file = project.generateFullList.list_file
                     stats_cmp_file = project.file("${project.cmp_model_dir}/stats.${cur_clus_it}")
-                    question_file = project.file(project.vb_configuration.data.question_file);
+                    question_file = project.file(project.gradle.vb_configuration.data.question_file);
                     config_file = project.file("${project.config_dir}/${stream.name}.cfg") // FIXME: refactor using the task MOCC dependency
 
                     // Transitive file
@@ -153,7 +153,7 @@ class ContextStages
 
                     // Outputs
                     def tmp_tree_files = []
-                    for (i in 2..project.vb_configuration.models.global.nb_emitting_states+1) {
+                    for (i in 2..project.gradle.vb_configuration.models.global.nb_emitting_states+1) {
                         def f = project.file("${project.tree_dir}/fullcontext_${cur_clus_it}/${stream.name}_${i}.inf")
                         tmp_tree_files.add(f)
                     }
@@ -162,7 +162,7 @@ class ContextStages
 
 
                     def model_files = []
-                    for (i in 2..project.vb_configuration.models.global.nb_emitting_states+1) {
+                    for (i in 2..project.gradle.vb_configuration.models.global.nb_emitting_states+1) {
                         def f = project.file("${project.cmp_model_dir}/fullcontext_${cur_clus_it}/init/${stream.name}_${i}.mmf")
                         model_files.add(f)
                     }
@@ -186,7 +186,7 @@ class ContextStages
                     script_file = project.file("${project.hhed_script_dir}/${cur_clus_it}/join_${stream.name}.hed")
                     clustered_cmp_files = project.property("clusteringCMPTo${stream.name}_${cur_clus_it}").clustered_model_files
                     def model_files = []
-                    for (i in 2..project.vb_configuration.models.global.nb_emitting_states+1) {
+                    for (i in 2..project.gradle.vb_configuration.models.global.nb_emitting_states+1) {
                         def f = project.file("${project.cmp_model_dir}/fullcontext_${cur_clus_it}/init/${stream.name}_${i}.mmf")
                         model_files.add(f)
                     }
@@ -214,7 +214,7 @@ class ContextStages
                 script_template_file =  project.file("${project.template_dir}/cxc.hed");
 
                 // Question file
-                question_file = project.file(project.vb_configuration.data.question_file)
+                question_file = project.file(project.gradle.vb_configuration.data.question_file)
                 script_file = project.file("${project.hhed_script_dir}/cxc_dur.hed.${cur_clus_it}")
                 tree_file = project.file("${project.tree_dir}/dur.${cur_clus_it}.inf")
                 config_file = project.file("${project.config_dir}/dur.cfg")
@@ -231,7 +231,7 @@ class ContextStages
             project.task("trainClusteredModels_${cur_clus_it}", type: TrainModelsTask) {
                 description "Train the clustered models (iteration $cur_clus_it)"
 
-                def stream = project.vb_configuration.models.cmp.streams.last()
+                def stream = project.gradle.vb_configuration.models.cmp.streams.last()
 
                 // FIXME: find a way to get rid of this
                 dependsOn "joinClusteredTo${stream.name}_${cur_clus_it}"
@@ -251,7 +251,7 @@ class ContextStages
             }
 
 
-            if (cur_clus_it  < project.vb_configuration.settings.training.nb_clustering) {
+            if (cur_clus_it  < project.gradle.vb_configuration.settings.training.nb_clustering) {
 
                 project.task("untyingCMP_${cur_clus_it}", type: UntyingCMPTask) {
 

@@ -64,7 +64,7 @@ public class GenerateFeatureTask extends DefaultTask {
                             cur_lab_file,
                             new File(ffi_dir.getAsFile().get().toString(), "${basename}.ffi"),
                             qconf_file.getAsFile().get(),
-                            (float) project.vb_configuration.signal.frameshift
+                            (float) project.gradle.vb_configuration.signal.frameshift
                         );
                     }
                 });
