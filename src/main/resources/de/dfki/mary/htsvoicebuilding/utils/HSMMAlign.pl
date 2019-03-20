@@ -36,7 +36,7 @@ use strict;
 ################################################################################
 
 # Specify the command to be executed
-my $COMMAND = "HERest";
+my $COMMAND = "HSMMAlign";
 my $nbproc  = shift(@ARGV);
 
 # Check my user ID
@@ -48,10 +48,8 @@ my @ARGIN = @ARGV;
 my ( $NSCP, $NMMF );
 foreach my $n ( 0 .. $#ARGIN ) {
     $NSCP = $n + 1 if ( $ARGIN[$n] eq "-S" );
-    $NMMF = $n + 1 if ( $ARGIN[$n] eq "-M" );
 }
 my $scpi = "$ARGIN[$NSCP]";
-my $mmfi = "$ARGIN[$NMMF]";
 
 # Open the input script and compute the script size for each processor
 open( SCP, "$scpi" ) || die "Cannot open $scpi: $!";
@@ -89,7 +87,6 @@ close(SCP);
 my @commands = ();
 foreach my $n ( 1 .. $nbproc ) {
     $commands[ $n - 1 ] = "$COMMAND";
-    $commands[ $n - 1 ] = "$commands[$n-1] -p $n";
     foreach my $narg ( 0 .. $#ARGIN - 1 ) {
         unless ( $narg == $NSCP ) {
             if ( $ARGIN[$narg] =~ m/\*/ ) {
@@ -140,31 +137,6 @@ for ( my $i = 0 ; $i <= $#pid ; $i++ ) {
     waitpid( $pid[$i], 0 );
 }
 print "Done\n";
-
-# Merge the results
-print "Merging results: ";
-my $command = $COMMAND;
-$command = "$command -p 0";
-foreach my $narg ( 0 .. $#ARGIN - 1 ) {
-    unless ( $narg == $NSCP || $narg == $NSCP - 1 ) {
-        if ( $ARGIN[$narg] =~ m/\*/ ) {
-            $command = "$command '$ARGIN[$narg]'";
-        }
-        else {
-            $command = "$command $ARGIN[$narg]";
-        }
-    }
-}
-
-my $parameters = "";
-foreach $n ( 1 .. $nbproc ) {
-    $parameters = "$parameters $mmfi\/HER$n.hmm.acc";
-    $parameters = "$parameters $mmfi\/HER$n.dur.acc"
-      if ( -e "$mmfi\/HER$n.dur.acc" );
-}
-
-$command = "$command $ARGIN[$#ARGIN] $parameters";
-system("$command");
 
 # Clean temporary files
 print "Cleaning temporary files: ";

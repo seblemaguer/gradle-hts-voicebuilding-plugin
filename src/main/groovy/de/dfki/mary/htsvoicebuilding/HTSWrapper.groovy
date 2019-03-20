@@ -12,10 +12,11 @@ class HTSWrapper implements Serializable {
     def training_wf
     def nb_proc
     def herest_pl_script
+    def hsmmalign_pl_script
     def map_command = [:]
 
     public HTSWrapper(def beams, def train_config_filename, def training_wf,
-                      def nb_proc, def herest_pl_script, def debug)
+                      def nb_proc, def herest_pl_script, def hsmmalign_pl_script, def debug)
     {
         if (debug) {
             global_options = ["-A", "-C", train_config_filename,  "-D", "-T", "1"]
@@ -27,6 +28,7 @@ class HTSWrapper implements Serializable {
         this.training_wf = training_wf
         this.nb_proc = nb_proc
         this.herest_pl_script = herest_pl_script
+        this.hsmmalign_pl_script = hsmmalign_pl_script
         init()
     }
 
@@ -37,7 +39,6 @@ class HTSWrapper implements Serializable {
         map_command["hinit"]     = ["HInit"]     + global_options + ["-m", "1", "-u", "tmvw", "-w", training_wf]
         map_command["hrest"]     = ["HRest"]     + global_options + ["-m", "1", "-u", "tmvw", "-w", training_wf]
         map_command["hhed"]      = ["HHEd"]      + global_options + ["-p", "-i"]
-        map_command["hsmmalign"] = ["HSMMAlign"] + (global_options - ["-B"]) + ["-w", "1.0", "-t"] + beams // For this specific command, no binary flag!
         map_command["hmgens"]    = ["HMGenS"]    + (global_options - ["-B"]) + ["-t"] + beams + ["-m"]
 
         // Parallize commands
@@ -45,10 +46,14 @@ class HTSWrapper implements Serializable {
             map_command["herest"] = ["perl", herest_pl_script] + [nb_proc] + global_options +
                 ["-m", "1", "-u", "tmvwdmv", "-w", training_wf, "-t"] +
                 beams
+
+            map_command["hsmmalign"] = ["perl", hsmmalign_pl_script] + [nb_proc] + (global_options - ["-B"]) + ["-w", "1.0", "-t"] + beams // For this specific command, no binary flag!
         } else {
             map_command["herest"] = ["HERest"] + global_options +
                 ["-m", "1", "-u", "tmvwdmv", "-w", training_wf, "-t"] +
                 beams
+
+            map_command["hsmmalign"] = ["HSMMAlign"] + (global_options - ["-B"]) + ["-w", "1.0", "-t"] + beams // For this specific command, no binary flag!
         }
     }
 

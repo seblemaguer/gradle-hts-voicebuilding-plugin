@@ -180,6 +180,7 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
             utils_dir = project.file("$project.buildDir/tmp/utils")
             utils_dir.mkdirs()
             def utils = ['HERest.pl',
+                         'HSMMAlign.pl',
                          'addhtkheader.pl',
                          'makefeature.pl',
                          'DNNDataIO.py',
@@ -199,9 +200,11 @@ class HTSVoicebuildingPlugin implements Plugin<Project> {
             HTSWrapper.logger = project.logger
             def beams = project.gradle.vb_configuration.settings.training.beam.split() as List
             hts_wrapper = new HTSWrapper(beams, "$project.train_config_filename",
-                                             project.gradle.vb_configuration.settings.training.wf,
-                                             project.gradle.startParameter.getMaxWorkerCount(),
-                                             "$project.buildDir/tmp/utils/HERest.pl", debug)
+                                         project.gradle.vb_configuration.settings.training.wf,
+                                         project.gradle.startParameter.getMaxWorkerCount(),
+                                         "$project.buildDir/tmp/utils/HERest.pl",
+                                         "$project.buildDir/tmp/utils/HSMMAlign.pl",
+                                         debug)
         }
 
 
